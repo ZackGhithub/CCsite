@@ -244,6 +244,7 @@ def render_page(page):
         )
 
     logo_src = to_relative("assets/images/cc-logo-master-transparent.png", depth)
+    favicon_src = to_relative("assets/images/cc-logo-sans-point-transparent.png", depth)
     logo_footer_src = to_relative("assets/images/cc-logo-sans-point-blanc.png", depth)
     css_href = to_relative("assets/css/style.css", depth)
     js_src = to_relative("assets/js/main.js", depth)
@@ -260,6 +261,7 @@ def render_page(page):
         js_src=js_src,
         home_href=home_href,
         logo_src=logo_src,
+        favicon_src=favicon_src,
         logo_footer_src=logo_footer_src,
         nav_items=nav_html(page["id"], depth),
         breadcrumb=breadcrumb,
@@ -295,7 +297,7 @@ TEMPLATE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title}</title>
 <meta name="description" content="{description}">
-<link rel="icon" href="{logo_src}">
+<link rel="icon" href="{favicon_src}">
 <link rel="stylesheet" href="{css_href}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
