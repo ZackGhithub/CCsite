@@ -122,6 +122,21 @@ PAGES = [
 
 BY_ID = {p["id"]: p for p in PAGES}
 
+# Pages appartenant à l'identité "École" (bleu) ou "Collège" (bordeaux), pour
+# teinter localement les pages propres à chaque établissement. Les pages
+# communes (accueil, Le Cours Chambertin, admissions générales, etc.)
+# gardent l'accent bordeaux par défaut.
+ECOLE_IDS = {"149", "150", "151", "152", "153", "154"}
+COLLEGE_IDS = {"155", "156", "157", "158", "159"}
+
+
+def section_of(page_id):
+    if page_id in ECOLE_IDS:
+        return "ecole"
+    if page_id in COLLEGE_IDS:
+        return "college"
+    return ""
+
 # Chemin (dans le site d'origine) -> chemin (sur ce site), pour la réécriture des liens.
 ORIGINAL_PATH_TO_NEW = {}
 for p in PAGES:
@@ -255,6 +270,7 @@ def render_page(page):
 
     html = TEMPLATE.format(
         lang="fr",
+        section=section_of(page["id"]),
         title=f'{page["title"]} | {SITE_NAME}' if page["path"] else f'{SITE_NAME} | Enseignement privé École et Collège',
         description=page["excerpt"],
         css_href=css_href,
@@ -303,7 +319,7 @@ TEMPLATE = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Spectral:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
 </head>
-<body>
+<body data-section="{section}">
 <a class="skip-link" href="#contenu">Aller au contenu</a>
 <header id="site-header">
   <div class="cc-header-inner">

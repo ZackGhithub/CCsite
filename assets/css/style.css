@@ -14,6 +14,14 @@
   --cc-accent-dark: #6c1622;
   --cc-or: #B08A4F;
   --cc-or-soft: #C9AE8A;
+  --cc-bleu: #2EA3F2;
+  --cc-bleu-dark: #1c7dbf;
+  /* Accent de section : bordeaux par défaut (identité commune / Collège),
+     réécrit en bleu sur les pages de l'École via [data-section="ecole"]
+     — reprend la couleur d'accent bleue utilisée à l'origine pour
+     distinguer l'École du Collège. */
+  --cc-section-accent: var(--cc-accent);
+  --cc-section-accent-dark: var(--cc-accent-dark);
   --cc-footer-bg: #1E1613;
   --cc-footer-text: #efe4d6;
   --cc-border: rgba(23, 19, 16, 0.1);
@@ -32,6 +40,15 @@ body {
   background: var(--cc-blanc);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+}
+
+body[data-section="ecole"] {
+  --cc-section-accent: var(--cc-bleu);
+  --cc-section-accent-dark: var(--cc-bleu-dark);
+}
+body[data-section="college"] {
+  --cc-section-accent: var(--cc-accent);
+  --cc-section-accent-dark: var(--cc-accent-dark);
 }
 
 img { max-width: 100%; height: auto; display: block; }
@@ -99,8 +116,8 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
 }
 .site-nav li.current > a,
 .site-nav a:hover, .site-nav a:focus-visible {
-  color: var(--cc-accent);
-  border-bottom-color: var(--cc-accent);
+  color: var(--cc-section-accent);
+  border-bottom-color: var(--cc-section-accent);
   text-decoration: none;
 }
 
@@ -123,7 +140,7 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
   display: block; padding: .55rem 1.2rem; border: 0; font-weight: 500;
   font-size: .88rem; white-space: nowrap;
 }
-.site-nav .sub-menu a:hover { background: var(--cc-craie); color: var(--cc-accent); }
+.site-nav .sub-menu a:hover { background: var(--cc-craie); color: var(--cc-section-accent); }
 
 .nav-toggle {
   display: none; flex-direction: column; gap: 5px;
@@ -157,7 +174,7 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
 }
 .cc-breadcrumb a { color: var(--cc-ink-soft); }
 .cc-breadcrumb .sep { margin: 0 .3rem; opacity: .5; }
-.cc-breadcrumb [aria-current="page"] { color: var(--cc-accent); }
+.cc-breadcrumb [aria-current="page"] { color: var(--cc-section-accent); }
 
 /* ---------- Sections ---------- */
 
@@ -171,20 +188,20 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
 
 .surtitre {
   font-family: var(--cc-font-sans); font-size: .78rem; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase; color: var(--cc-accent);
+  letter-spacing: .16em; text-transform: uppercase; color: var(--cc-section-accent);
   margin-bottom: .9rem;
 }
 .surtitre em { font-style: normal; }
 
-.cc-lead-italic { font-style: italic; color: var(--cc-accent); font-weight: 300; }
+.cc-lead-italic { font-style: italic; color: var(--cc-section-accent); font-weight: 300; }
 
 p.cta { margin-top: 1.6rem; }
 p.cta a {
   font-family: var(--cc-font-sans); font-weight: 700; font-size: .92rem;
-  color: var(--cc-accent); border-bottom: 2px solid var(--cc-or);
+  color: var(--cc-section-accent); border-bottom: 2px solid var(--cc-or);
   padding-bottom: 2px; text-decoration: none;
 }
-p.cta a:hover { color: var(--cc-accent-dark); border-color: var(--cc-accent); }
+p.cta a:hover { color: var(--cc-section-accent-dark); border-color: var(--cc-section-accent); }
 p.cta a::after { content: " \2192"; }
 
 /* ---------- Bento (cartes en grille) ---------- */
@@ -204,7 +221,7 @@ p.cta a::after { content: " \2192"; }
   background: var(--cc-accent); border-top-color: var(--cc-or); color: #fff;
 }
 .cc-bento-card--invert h3, .cc-bento-card--invert p { color: #fff; }
-.cc-bento-card--ecole { border-top-color: var(--cc-or); }
+.cc-bento-card--ecole { border-top-color: var(--cc-bleu); }
 .cc-bento-card h3 { margin-bottom: .6rem; font-size: 1.2rem; }
 .cc-bento-card p:last-child { margin-bottom: 0; }
 .cc-bento-eyebrow {
@@ -212,6 +229,7 @@ p.cta a::after { content: " \2192"; }
   letter-spacing: .12em; text-transform: uppercase; color: var(--cc-or);
   margin-bottom: .5rem;
 }
+.cc-bento-card--ecole .cc-bento-eyebrow { color: var(--cc-bleu-dark); }
 .cc-bento-card--invert .cc-bento-eyebrow { color: #f0d9c8; }
 .cc-bento-figure {
   font-family: var(--cc-font-serif); font-size: clamp(2.4rem, 5vw, 3.4rem);
@@ -226,6 +244,11 @@ p.cta a::after { content: " \2192"; }
   text-decoration: none; border-bottom: 2px solid var(--cc-or);
 }
 .cc-bento-card--invert .cc-bento-action a { color: #fff; border-color: rgba(255,255,255,.6); }
+.cc-bento-card--ecole .cc-bento-action a,
+.cc-dual-panel-side--ecole .cc-bento-action a,
+.cc-tri-panel-side--ecole .cc-bento-action a { color: var(--cc-bleu-dark); border-color: var(--cc-bleu); }
+.cc-dual-panel-side--college .cc-bento-action a,
+.cc-tri-panel-side--college .cc-bento-action a { color: var(--cc-accent); border-color: var(--cc-accent); }
 .cc-bento-action a::after { content: " \2192"; }
 
 @media (max-width: 780px) {
@@ -245,6 +268,7 @@ p.cta a::after { content: " \2192"; }
 .cc-dual-panel-side, .cc-tri-panel-side {
   background: #fff; padding: 2.25rem; border-top: 3px solid var(--cc-or);
 }
+.cc-dual-panel-side--ecole, .cc-tri-panel-side--ecole { border-top-color: var(--cc-bleu); }
 .cc-dual-panel-side--college, .cc-tri-panel-side--college { border-top-color: var(--cc-accent); }
 .cc-dual-panel-side h3, .cc-tri-panel-side h3 { font-size: 1.15rem; margin-bottom: .7rem; }
 .cc-dual-panel-side p:last-child, .cc-tri-panel-side p:last-child { margin-bottom: 0; }
@@ -267,14 +291,14 @@ p.cta a::after { content: " \2192"; }
 .cc-timeline > li:last-child { padding-bottom: 0; }
 .cc-timeline > li::before {
   content: ""; position: absolute; left: -2.45rem; top: .3rem;
-  width: 13px; height: 13px; border-radius: 50%; background: var(--cc-accent);
+  width: 13px; height: 13px; border-radius: 50%; background: var(--cc-section-accent);
 }
 .cc-timeline > li.cc-avenir::before {
   background: #fff; border: 2px solid var(--cc-or);
 }
 .cc-timeline-date {
   font-family: var(--cc-font-sans); font-weight: 700; font-size: .82rem;
-  letter-spacing: .06em; text-transform: uppercase; color: var(--cc-accent); margin-bottom: .4rem;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--cc-section-accent); margin-bottom: .4rem;
 }
 .cc-timeline-body h3 { font-size: 1.15rem; margin-bottom: .5rem; }
 .cc-timeline-body p:last-child { margin-bottom: 0; }
@@ -292,7 +316,7 @@ p.cta a::after { content: " \2192"; }
 .cc-faq summary::-webkit-details-marker { display: none; }
 .cc-faq summary::after {
   content: "+"; position: absolute; right: 0; top: -2px; font-size: 1.4rem;
-  color: var(--cc-accent); font-weight: 300;
+  color: var(--cc-section-accent); font-weight: 300;
 }
 .cc-faq details[open] summary::after { content: "\2212"; }
 .cc-faq details p { margin: .9rem 0 0; color: var(--cc-ink-soft); }
