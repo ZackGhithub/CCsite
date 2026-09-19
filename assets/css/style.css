@@ -14,8 +14,10 @@
   --cc-accent-dark: #6c1622;
   --cc-or: #B08A4F;
   --cc-or-soft: #C9AE8A;
-  --cc-bleu: #2EA3F2;
-  --cc-bleu-dark: #1c7dbf;
+  /* Bleu-pétrole École, relevé directement sur le site de référence
+     (boutons "Découvrir le CP", etc.) */
+  --cc-bleu: #245460;
+  --cc-bleu-dark: #163940;
   /* Accent de section : bordeaux par défaut (identité commune / Collège),
      réécrit en bleu sur les pages de l'École via [data-section="ecole"]
      — reprend la couleur d'accent bleue utilisée à l'origine pour
@@ -197,12 +199,12 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
 
 p.cta { margin-top: 1.6rem; }
 p.cta a {
-  font-family: var(--cc-font-sans); font-weight: 700; font-size: .92rem;
-  color: var(--cc-section-accent); border-bottom: 2px solid var(--cc-or);
-  padding-bottom: 2px; text-decoration: none;
+  display: inline-block; font-family: var(--cc-font-sans); font-weight: 700;
+  font-size: .92rem; color: #fff; background: var(--cc-section-accent);
+  padding: .95rem 2rem; border-radius: 3px; text-decoration: none;
+  text-align: center; transition: background-color .15s;
 }
-p.cta a:hover { color: var(--cc-section-accent-dark); border-color: var(--cc-section-accent); }
-p.cta a::after { content: " \2192"; }
+p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-decoration: none; }
 
 /* ---------- Bento (cartes en grille) ---------- */
 
@@ -240,16 +242,24 @@ p.cta a::after { content: " \2192"; }
   letter-spacing: .1em; text-transform: uppercase; color: #f0d9c8; margin: .5rem 0 1rem;
 }
 .cc-bento-action a {
-  font-family: var(--cc-font-sans); font-weight: 700; font-size: .85rem;
-  text-decoration: none; border-bottom: 2px solid var(--cc-or);
+  display: block; font-family: var(--cc-font-sans); font-weight: 700; font-size: .85rem;
+  text-decoration: none; text-align: center; color: #fff; background: var(--cc-section-accent);
+  padding: .85rem 1.5rem; border-radius: 3px; transition: background-color .15s;
 }
-.cc-bento-card--invert .cc-bento-action a { color: #fff; border-color: rgba(255,255,255,.6); }
+.cc-bento-action a:hover { background: var(--cc-section-accent-dark); text-decoration: none; }
+/* Sur fond déjà coloré (carte "inversée"), le bouton passe en blanc plein. */
+.cc-bento-card--invert .cc-bento-action a { color: var(--cc-accent); background: #fff; }
+.cc-bento-card--invert .cc-bento-action a:hover { background: #f0d9c8; }
 .cc-bento-card--ecole .cc-bento-action a,
 .cc-dual-panel-side--ecole .cc-bento-action a,
-.cc-tri-panel-side--ecole .cc-bento-action a { color: var(--cc-bleu-dark); border-color: var(--cc-bleu); }
+.cc-tri-panel-side--ecole .cc-bento-action a { background: var(--cc-bleu); }
+.cc-bento-card--ecole .cc-bento-action a:hover,
+.cc-dual-panel-side--ecole .cc-bento-action a:hover,
+.cc-tri-panel-side--ecole .cc-bento-action a:hover { background: var(--cc-bleu-dark); }
 .cc-dual-panel-side--college .cc-bento-action a,
-.cc-tri-panel-side--college .cc-bento-action a { color: var(--cc-accent); border-color: var(--cc-accent); }
-.cc-bento-action a::after { content: " \2192"; }
+.cc-tri-panel-side--college .cc-bento-action a { background: var(--cc-accent); }
+.cc-dual-panel-side--college .cc-bento-action a:hover,
+.cc-tri-panel-side--college .cc-bento-action a:hover { background: var(--cc-accent-dark); }
 
 @media (max-width: 780px) {
   .cc-bento { grid-template-columns: 1fr; }
