@@ -222,9 +222,11 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
 .cc-bento-card--invert {
   background: var(--cc-accent); border-top-color: var(--cc-or); color: #fff;
 }
-.cc-bento-card--invert h3, .cc-bento-card--invert p { color: #fff; }
+.cc-bento-card--invert p { color: #fff; }
 .cc-bento-card--ecole { border-top-color: var(--cc-bleu); }
-.cc-bento-card h3 { margin-bottom: .6rem; font-size: 1.2rem; }
+.cc-bento-card h3 { margin-bottom: .6rem; font-size: 1.2rem; color: var(--cc-section-accent); }
+.cc-bento-card--ecole h3 { color: var(--cc-bleu); }
+.cc-bento-card--invert h3 { color: #fff; }
 .cc-bento-card p:last-child { margin-bottom: 0; }
 .cc-bento-eyebrow {
   font-family: var(--cc-font-sans); font-size: .72rem; font-weight: 700;
@@ -280,7 +282,11 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
 }
 .cc-dual-panel-side--ecole, .cc-tri-panel-side--ecole { border-top-color: var(--cc-bleu); }
 .cc-dual-panel-side--college, .cc-tri-panel-side--college { border-top-color: var(--cc-accent); }
-.cc-dual-panel-side h3, .cc-tri-panel-side h3 { font-size: 1.15rem; margin-bottom: .7rem; }
+.cc-dual-panel-side h3, .cc-tri-panel-side h3 {
+  font-size: 1.15rem; margin-bottom: .7rem; color: var(--cc-section-accent);
+}
+.cc-dual-panel-side--ecole h3, .cc-tri-panel-side--ecole h3 { color: var(--cc-bleu); }
+.cc-dual-panel-side--college h3, .cc-tri-panel-side--college h3 { color: var(--cc-accent); }
 .cc-dual-panel-side p:last-child, .cc-tri-panel-side p:last-child { margin-bottom: 0; }
 .cc-dual-panel-side .cc-bento-action, .cc-tri-panel-side .cc-bento-action { margin-top: 1.2rem; }
 
@@ -310,7 +316,7 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
   font-family: var(--cc-font-sans); font-weight: 700; font-size: .82rem;
   letter-spacing: .06em; text-transform: uppercase; color: var(--cc-section-accent); margin-bottom: .4rem;
 }
-.cc-timeline-body h3 { font-size: 1.15rem; margin-bottom: .5rem; }
+.cc-timeline-body h3 { font-size: 1.15rem; margin-bottom: .5rem; color: var(--cc-section-accent); }
 .cc-timeline-body p:last-child { margin-bottom: 0; }
 
 /* ---------- FAQ ---------- */

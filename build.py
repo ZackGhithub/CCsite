@@ -258,7 +258,11 @@ def render_page(page):
             f'</div></div>'
         )
 
-    logo_src = to_relative("assets/images/cc-logo-master-transparent.png", depth)
+    logo_file = {
+        "ecole": "cc-logo-ecole-transparent.png",
+        "college": "cc-logo-college-transparent.png",
+    }.get(section_of(page["id"]), "cc-logo-master-transparent.png")
+    logo_src = to_relative(f"assets/images/{logo_file}", depth)
     favicon_src = to_relative("assets/images/cc-logo-sans-point-transparent.png", depth)
     logo_footer_src = to_relative("assets/images/cc-logo-sans-point-blanc.png", depth)
     css_href = to_relative("assets/css/style.css", depth)
