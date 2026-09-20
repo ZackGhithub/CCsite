@@ -15,6 +15,8 @@ Usage : python3 build.py
 """
 import os
 import re
+import json
+import html
 import shutil
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +25,15 @@ CONTENT_DIR = os.path.join(ROOT, "content")
 SITE_NAME = "Cours Chambertin"
 SITE_TAGLINE = "École et Collège privés · Asnières-sur-Seine"
 ORIGINAL_PREFIX = "https://www.courschambertin.fr/clone0726"
+
+# Domaine de production visé (à ajuster ici le jour du déploiement définitif :
+# toutes les URLs absolues — canonical, Open Graph, Schema.org — en dépendent).
+SITE_URL = "https://www.courschambertin.fr"
+
+
+def abs_url(path):
+    """Chemin site-relatif ('' ou 'ecole/cp/') -> URL absolue de production."""
+    return SITE_URL.rstrip("/") + "/" + path
 
 # --------------------------------------------------------------------------
 # Manifest des pages : id -> métadonnées + chemin de sortie sur le site.
@@ -167,6 +178,131 @@ FOOTER_NAV = [
 ]
 
 
+# --------------------------------------------------------------------------
+# Données structurées Schema.org (JSON-LD). Une entité EducationalOrganization
+# pour l'ensemble « Cours Chambertin », et une entité School pour chacun des
+# deux établissements, reliées par parentOrganization / subOrganization.
+# --------------------------------------------------------------------------
+_ADDRESS_COLLEGE = {
+    "@type": "PostalAddress",
+    "streetAddress": "9 avenue de la Marne",
+    "postalCode": "92600",
+    "addressLocality": "Asnières-sur-Seine",
+    "addressCountry": "FR",
+}
+_ADDRESS_ECOLE = {
+    "@type": "PostalAddress",
+    "streetAddress": "14 rue Steffen",
+    "postalCode": "92600",
+    "addressLocality": "Asnières-sur-Seine",
+    "addressCountry": "FR",
+}
+
+ORG_ID = abs_url("") + "#organization"
+ECOLE_ID = abs_url("ecole/") + "#school"
+COLLEGE_ID = abs_url("college/") + "#school"
+
+JSONLD_CHAMBERTIN = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "@id": ORG_ID,
+    "name": "Cours Chambertin",
+    "description": "Ensemble scolaire privé fondé en 1982 à Asnières-sur-Seine, "
+                    "composé de l’École Chambertin (CP au CM2) et du Collège "
+                    "Chambertin (6e à la 3e).",
+    "url": abs_url(""),
+    "logo": abs_url("assets/images/cc-logo-master-transparent.png"),
+    "image": abs_url("assets/images/teacher-helping-young-students-1920x1024-1.jpg"),
+    "telephone": "+33-1-47-93-97-92",
+    "foundingDate": "1982",
+    "address": _ADDRESS_COLLEGE,
+    "subOrganization": [{"@id": ECOLE_ID}, {"@id": COLLEGE_ID}],
+}
+
+JSONLD_ECOLE = {
+    "@context": "https://schema.org",
+    "@type": "School",
+    "@id": ECOLE_ID,
+    "name": "École Chambertin",
+    "description": "École élémentaire privée hors contrat. L’École Chambertin "
+                    "rouvrira en septembre 2027 à Asnières-sur-Seine avec un CP, "
+                    "un CE1-CE2 et un CM1-CM2.",
+    "url": abs_url("ecole/"),
+    "logo": abs_url("assets/images/cc-logo-ecole-transparent.png"),
+    "image": abs_url("assets/images/cc-ecole-rue-steffen.jpg"),
+    "address": _ADDRESS_ECOLE,
+    "parentOrganization": {"@id": ORG_ID},
+}
+
+JSONLD_COLLEGE = {
+    "@context": "https://schema.org",
+    "@type": "School",
+    "@id": COLLEGE_ID,
+    "name": "Collège Chambertin",
+    "alternateName": "Collège privé Chambertin",
+    "description": "Établissement privé laïque sous contrat d’association avec "
+                    "l’État. Le Collège Chambertin accueille les élèves de la 6e "
+                    "à la 3e à Asnières-sur-Seine.",
+    "url": abs_url("college/"),
+    "logo": abs_url("assets/images/cc-logo-college-transparent.png"),
+    "image": abs_url("assets/images/cc-college-facade.jpg"),
+    "telephone": "+33-1-47-93-97-92",
+    "foundingDate": "1982",
+    "address": _ADDRESS_COLLEGE,
+    "parentOrganization": {"@id": ORG_ID},
+}
+
+# Image Open Graph / Twitter Card par défaut selon la section de la page.
+OG_IMAGE_BY_SECTION = {
+    "ecole": "assets/images/cc-ecole-rue-steffen.jpg",
+    "college": "assets/images/cc-college-facade.jpg",
+}
+OG_IMAGE_DEFAULT = "assets/images/teacher-helping-young-students-1920x1024-1.jpg"
+
+
+def json_ld_for(page):
+    """Entité Schema.org adaptée à la page : School pour l'École/le Collège,
+    EducationalOrganization pour l'ensemble Cours Chambertin ailleurs. Le nom
+    est décliné par page (ex. « Cours Chambertin - Accueil »), à la manière
+    d'un <title> ; les autres champs restent ceux de l'entité réelle.
+    Aucun email ni compte de réseau social n'est publié sur le site
+    d'origine (liens du pied de page en « # ») : ces champs ne sont donc
+    pas inventés ici (pas d'email, pas de sameAs)."""
+    base = {"ecole": JSONLD_ECOLE, "college": JSONLD_COLLEGE}.get(
+        section_of(page["id"]), JSONLD_CHAMBERTIN
+    )
+    entity = dict(base)
+    entity["name"] = f'{SITE_NAME} - Accueil' if page["path"] == "" else f'{SITE_NAME} - {page["title"]}'
+    entity["description"] = page["excerpt"]
+    return json.dumps(entity, ensure_ascii=False, indent=2)
+
+
+def seo_head_block(page, title, description):
+    """Bloc <link>/<meta> Open Graph, Twitter Card et JSON-LD, à insérer tel
+    quel juste avant </head>."""
+    depth = depth_of(page["path"])
+    canonical = abs_url(page["path"])
+    og_image = abs_url(OG_IMAGE_BY_SECTION.get(section_of(page["id"]), OG_IMAGE_DEFAULT))
+    title_attr = html.escape(title, quote=True)
+    description_attr = html.escape(description, quote=True)
+    json_ld = json_ld_for(page)
+    return (
+        f'<link rel="canonical" href="{canonical}">\n'
+        f'  <meta property="og:type" content="website">\n'
+        f'  <meta property="og:site_name" content="{SITE_NAME}">\n'
+        f'  <meta property="og:locale" content="fr_FR">\n'
+        f'  <meta property="og:title" content="{title_attr}">\n'
+        f'  <meta property="og:description" content="{description_attr}">\n'
+        f'  <meta property="og:url" content="{canonical}">\n'
+        f'  <meta property="og:image" content="{og_image}">\n'
+        f'  <meta name="twitter:card" content="summary_large_image">\n'
+        f'  <meta name="twitter:title" content="{title_attr}">\n'
+        f'  <meta name="twitter:description" content="{description_attr}">\n'
+        f'  <meta name="twitter:image" content="{og_image}">\n'
+        f'  <script type="application/ld+json">\n{json_ld}\n  </script>'
+    )
+
+
 def depth_of(path):
     return 0 if path == "" else path.count("/")
 
@@ -269,14 +405,21 @@ def render_page(page):
     js_src = to_relative("assets/js/main.js", depth)
     home_href = to_relative("", depth)
 
-    canonical_path = page["path"]
     breadcrumb = breadcrumb_html(page, depth)
+
+    page_title = (
+        f'{page["title"]} | {SITE_NAME}' if page["path"]
+        else f'{SITE_NAME} | Enseignement privé École et Collège'
+    )
+    page_description = page["excerpt"]
+    seo_head = seo_head_block(page, page_title, page_description)
 
     html = TEMPLATE.format(
         lang="fr",
         section=section_of(page["id"]),
-        title=f'{page["title"]} | {SITE_NAME}' if page["path"] else f'{SITE_NAME} | Enseignement privé École et Collège',
-        description=page["excerpt"],
+        title=page_title,
+        description=page_description,
+        seo_head=seo_head,
         css_href=css_href,
         js_src=js_src,
         home_href=home_href,
@@ -322,6 +465,8 @@ TEMPLATE = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Spectral:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  {seo_head}
 </head>
 <body data-section="{section}">
 <a class="skip-link" href="#contenu">Aller au contenu</a>
