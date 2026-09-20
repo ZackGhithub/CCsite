@@ -191,8 +191,10 @@ _ADDRESS_COLLEGE = {
     "addressCountry": "FR",
 }
 _ADDRESS_ECOLE = {
+    # Pas de streetAddress : l'adresse précise n'est communiquée qu'aux
+    # familles lors du rendez-vous individuel, pour des raisons de
+    # confidentialité.
     "@type": "PostalAddress",
-    "streetAddress": "14 rue Steffen",
     "postalCode": "92600",
     "addressLocality": "Asnières-sur-Seine",
     "addressCountry": "FR",
@@ -229,7 +231,7 @@ JSONLD_ECOLE = {
                     "un CE1-CE2 et un CM1-CM2.",
     "url": abs_url("ecole/"),
     "logo": abs_url("assets/images/cc-logo-ecole-transparent.png"),
-    "image": abs_url("assets/images/cc-ecole-rue-steffen.jpg"),
+    "image": abs_url("assets/images/cc-ecole-facade.jpg"),
     "address": _ADDRESS_ECOLE,
     "parentOrganization": {"@id": ORG_ID},
 }
@@ -254,7 +256,7 @@ JSONLD_COLLEGE = {
 
 # Image Open Graph / Twitter Card par défaut selon la section de la page.
 OG_IMAGE_BY_SECTION = {
-    "ecole": "assets/images/cc-ecole-rue-steffen.jpg",
+    "ecole": "assets/images/cc-ecole-facade.jpg",
     "college": "assets/images/cc-college-facade.jpg",
 }
 OG_IMAGE_DEFAULT = "assets/images/teacher-helping-young-students-1920x1024-1.jpg"
@@ -509,7 +511,7 @@ TEMPLATE = """<!DOCTYPE html>
       </div>
       <div>
         <h2>École Chambertin</h2>
-        <p>14 rue Steffen<br>92600 Asnières-sur-Seine<br>Réouverture en septembre 2027</p>
+        <p>92600 Asnières-sur-Seine<br>Réouverture en septembre 2027</p>
       </div>
     </div>
     <div class="cc-pied-bas">
