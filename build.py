@@ -264,7 +264,7 @@ def render_page(page):
     }.get(section_of(page["id"]), "cc-logo-master-transparent.png")
     logo_src = to_relative(f"assets/images/{logo_file}", depth)
     favicon_src = to_relative("assets/images/cc-logo-sans-point-transparent.png", depth)
-    logo_footer_src = to_relative("assets/images/cc-logo-sans-point-blanc.png", depth)
+    logo_footer_src = to_relative("assets/images/cc-logo-master-blanc-plein.png", depth)
     css_href = to_relative("assets/css/style.css", depth)
     js_src = to_relative("assets/js/main.js", depth)
     home_href = to_relative("", depth)
