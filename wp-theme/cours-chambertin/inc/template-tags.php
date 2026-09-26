@@ -79,6 +79,33 @@ function cc_site_logo() {
 }
 
 /**
+ * Logo du pied de page : la maquette statique utilisait un fichier dédié
+ * ("cc-logo-master-blanc-plein.png", déjà importé dans la médiathèque par
+ * la migration) plutôt que le logo custom de l'en-tête — celui-ci est
+ * généralement sombre et deviendrait illisible sur le fond foncé du pied
+ * de page. Repli sur le logo custom standard si ce fichier n'a pas été
+ * trouvé (site pas encore migré, ou fichier renommé/supprimé).
+ */
+function cc_footer_logo() {
+	$query = new WP_Query(
+		array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'title'          => 'cc-logo-master-blanc-plein',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		)
+	);
+	if ( $query->posts ) {
+		echo wp_get_attachment_image( $query->posts[0], 'medium', false, array( 'alt' => get_bloginfo( 'name' ) ) );
+		return;
+	}
+	if ( has_custom_logo() ) {
+		the_custom_logo();
+	}
+}
+
+/**
  * Bandeau d'annonce sitewide (ex. ouverture de la préinscription), fermable
  * et mémorisé par clé (assets/js/main.js). Le lien cible une page par son
  * chemin plutôt qu'un ID ou une URL codée en dur, pour rester valide même

@@ -98,6 +98,28 @@ function cc_migrate_apply_image_map( $content, array $map ) {
 	);
 }
 
+/**
+ * Les liens internes convertis par html-to-blocks.php sont racine-relatifs
+ * (href="/ecole/admissions/"), ce qui suppose que WordPress est installé à
+ * la racine du domaine. Si WordPress vit dans un sous-dossier (ex.
+ * /clone0726/ en préproduction), ces liens pointent hors du site : il faut
+ * les faire passer par home_url() pour qu'ils incluent le bon préfixe.
+ */
+function cc_migrate_localize_links( $content ) {
+	// Délimiteur "~" plutôt que "#" : le motif exclut lui-même le caractère
+	// "#" (fragments d'ancre) dans une classe de caractères, ce qui casse
+	// la compilation PCRE si le délimiteur et ce caractère sont les mêmes
+	// (preg_replace_callback renvoie alors NULL silencieusement pour toute
+	// la chaîne — vu en test : un article migré avec un post_content vide).
+	return preg_replace_callback(
+		'~href="(/[^"#][^"]*)"~',
+		function ( $m ) {
+			return 'href="' . esc_url( home_url( $m[1] ) ) . '"';
+		},
+		$content
+	);
+}
+
 /** Crée les pages (avec leur hiérarchie parent/enfant) — idempotent. */
 function cc_migrate_create_pages( array $pages, $content_dir, array $image_map ) {
 	$id_map = array();
@@ -112,7 +134,7 @@ function cc_migrate_create_pages( array $pages, $content_dir, array $image_map )
 		}
 
 		$html   = file_get_contents( $content_dir . '/' . $page['file'] );
-		$blocks = cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map );
+		$blocks = cc_migrate_localize_links( cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map ) );
 
 		// Le parent (s'il y en a un) a nécessairement déjà été créé : dans
 		// pages.php, chaque page apparaît après son parent. Régler
@@ -158,7 +180,7 @@ function cc_migrate_create_posts( array $posts, $content_dir, array $image_map )
 		}
 
 		$html   = file_get_contents( $content_dir . '/' . $post_def['file'] );
-		$blocks = cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map );
+		$blocks = cc_migrate_localize_links( cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map ) );
 
 		$post_id = wp_insert_post(
 			array(
@@ -238,6 +260,48 @@ function cc_migrate_assign_menu_location( $menu_id, $location ) {
 	$locations              = get_theme_mod( 'nav_menu_locations', array() );
 	$locations[ $location ] = $menu_id;
 	set_theme_mod( 'nav_menu_locations', $locations );
+}
+
+/**
+ * Corrige les liens internes des pages/articles déjà migrés (utile après
+ * une migration lancée avant l'ajout de cc_migrate_localize_links(), ou si
+ * WordPress a changé de sous-dossier depuis). Sans effet sur les pages déjà
+ * correctes (le remplacement ne cible que les href="/..." encore racine-
+ * relatifs). Ne touche pas au reste du contenu, donc sûr à relancer même
+ * après des modifications manuelles.
+ */
+function cc_migrate_fix_existing_links( array $manifest ) {
+	$fixed = 0;
+
+	foreach ( $manifest['pages'] as $page ) {
+		$lookup = '' === $page['path'] ? 'accueil' : $page['path'];
+		$post   = get_page_by_path( $lookup );
+		if ( ! $post ) {
+			continue;
+		}
+		$new_content = cc_migrate_localize_links( $post->post_content );
+		if ( $new_content !== $post->post_content ) {
+			wp_update_post( array( 'ID' => $post->ID, 'post_content' => $new_content ) );
+			cc_migrate_log( "Liens corrigés : {$page['title']}" );
+			++$fixed;
+		}
+	}
+
+	foreach ( $manifest['posts'] as $post_def ) {
+		$post = get_page_by_path( $post_def['slug'], OBJECT, 'post' );
+		if ( ! $post ) {
+			continue;
+		}
+		$new_content = cc_migrate_localize_links( $post->post_content );
+		if ( $new_content !== $post->post_content ) {
+			wp_update_post( array( 'ID' => $post->ID, 'post_content' => $new_content ) );
+			cc_migrate_log( "Liens corrigés : {$post_def['title']}" );
+			++$fixed;
+		}
+	}
+
+	cc_migrate_log( $fixed > 0 ? "{$fixed} page(s)/article(s) corrigé(s)." : 'Aucun lien à corriger — déjà bon.' );
+	return $fixed;
 }
 
 /**

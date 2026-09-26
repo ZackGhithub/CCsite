@@ -16,9 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="cc-pied-inner">
 		<div class="cc-pied-grille">
 			<div class="cc-pied-marque">
-				<?php if ( has_custom_logo() ) : ?>
-					<?php the_custom_logo(); ?>
-				<?php endif; ?>
+				<?php cc_footer_logo(); ?>
 				<p><?php esc_html_e( 'Ensemble scolaire fondé en 1982 à Asnières-sur-Seine, composé de l’École Chambertin et du Collège Chambertin.', 'cours-chambertin' ); ?></p>
 				<a class="cc-pied-itineraire" href="https://www.google.com/maps/search/?api=1&query=9+avenue+de+la+Marne+92600+Asni%C3%A8res-sur-Seine" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Voir l’itinéraire →', 'cours-chambertin' ); ?></a>
 			</div>

@@ -36,6 +36,10 @@ function cc_migration_admin_page() {
 	if ( isset( $_POST['cc_migration_run'] ) && check_admin_referer( 'cc_migration_run' ) ) {
 		$manifest = require CC_MIGRATION_DIR . 'includes/pages.php';
 		$log      = cc_migrate_run( $manifest, CC_MIGRATION_DIR . 'data/content', CC_MIGRATION_DIR . 'data/images' );
+	} elseif ( isset( $_POST['cc_migration_fix_links'] ) && check_admin_referer( 'cc_migration_fix_links' ) ) {
+		$manifest = require CC_MIGRATION_DIR . 'includes/pages.php';
+		cc_migrate_fix_existing_links( $manifest );
+		$log = $GLOBALS['cc_migrate_log_lines'];
 	}
 
 	$theme_ok = 'cours-chambertin' === get_stylesheet();
@@ -71,6 +75,16 @@ function cc_migration_admin_page() {
 	echo '<form method="post">';
 	wp_nonce_field( 'cc_migration_run' );
 	submit_button( 'Lancer la migration', 'primary', 'cc_migration_run' );
+	echo '</form>';
+
+	echo '<hr style="margin:2em 0;">';
+	echo '<h2>Corriger les liens internes</h2>';
+	echo '<p>Si le site tourne dans un sous-dossier (ex. préproduction sur <code>/clone0726/</code>), '
+		. 'les liens internes des pages déjà migrées peuvent pointer hors de ce sous-dossier. '
+		. 'Ce bouton les recalcule sans toucher au reste du contenu — sûr à relancer plusieurs fois.</p>';
+	echo '<form method="post">';
+	wp_nonce_field( 'cc_migration_fix_links' );
+	submit_button( 'Corriger les liens internes', 'secondary', 'cc_migration_fix_links' );
 	echo '</form>';
 
 	echo '<p style="margin-top:2em;color:#646970;">Une fois la migration terminée et vérifiée, désactive puis supprime '
