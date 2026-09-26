@@ -27,6 +27,19 @@ Squelette du thème sur-mesure (sans Divi), à installer dans
   (School / EducationalOrganization), format de `<title>`.
 - `inc/template-tags.php` : fil d'Ariane, bandeau d'annonce, logo,
   classes de menu.
+- `blocks/` : deux blocs custom sans équivalent Gutenberg natif, écrits en
+  JS natif (sans étape de build), enregistrés par `inc/blocks.php` :
+  - **`cc/timeline`** + **`cc/timeline-item`** — frise chronologique
+    (Notre histoire, calendrier de l'École). Chaque étape a une date, un
+    titre et un corps en blocs Paragraphe natifs, avec un réglage « étape
+    à venir » pour le marqueur en pointillé (`cc-avenir`).
+  - **`cc/tri-panel`** + **`cc/tri-panel-side`** — rangée de 3 ou 4
+    panneaux à bordure de couleur (Contact, Collège, École). Chaque
+    panneau a un titre, des paragraphes natifs, et un réglage d'accent
+    (aucun / École / Collège). Un bouton dans un panneau n'est pas un
+    bloc à part : un paragraphe natif portant la classe CSS additionnelle
+    « cc-bento-action » avec un lien sur tout son texte suffit — la
+    feuille de style du thème le rend comme un bouton.
 
 ## Ce qu'il reste à faire une fois WordPress installé
 
@@ -46,10 +59,12 @@ Squelette du thème sur-mesure (sans Divi), à installer dans
    `cc_logo_master_url`) tant qu'aucun champ dédié n'existe.
 5. **Créer les 3 articles d'actualité** comme Articles (pas des Pages),
    avec la date de publication correspondant à leur ancien permalien.
-6. **Blocs custom manquants** : `cc-timeline` (frise) et `cc-tri-panel`
-   n'ont pas d'équivalent Gutenberg natif — à construire avec le skill
-   `.claude/skills/gutenberg-block.md` avant de migrer les pages qui les
-   utilisent (École, admissions, notre-histoire).
+6. **Remplacer `<ol class="cc-timeline">` et `<div class="cc-tri-panel">`**
+   par les blocs `cc/timeline` et `cc/tri-panel` au moment du collage du
+   contenu (étape 2) : le HTML brut de `content/*.html` pour ces deux
+   composants ne sera pas reconnu tel quel par l'éditeur de blocs, il faut
+   recomposer ces sections avec les nouveaux blocs (voir leur description
+   dans l'inserteur).
 7. **Bandeau d'annonce** : réglable via `cc_announce_message` et
    `cc_announce_target_path` (theme mods) — prévoir un panneau
    Personnaliser dédié si l'équipe éditoriale doit le modifier sans

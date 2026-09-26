@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "cc/tri-panel",
+  "title": "Panneaux (3 ou 4 colonnes)",
+  "category": "cours-chambertin",
+  "icon": "table-col-after",
+  "description": "Rangée de 3 ou 4 panneaux à bordure de couleur (ex. École/Collège sur Contact, niveaux sur le Collège). Contient des blocs « Panneau ».",
+  "textdomain": "cours-chambertin",
+  "attributes": {
+    "columns": {
+      "type": "number",
+      "default": 3,
+      "enum": [ 3, 4 ]
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": ["wide"]
+  }
+}

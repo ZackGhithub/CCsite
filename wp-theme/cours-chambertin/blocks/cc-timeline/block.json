@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "cc/timeline",
+  "title": "Frise chronologique",
+  "category": "cours-chambertin",
+  "icon": "clock",
+  "description": "Frise verticale d'étapes datées (ex. Notre histoire, calendrier de réouverture). Contient des blocs « Étape de frise ».",
+  "textdomain": "cours-chambertin",
+  "supports": {
+    "html": false,
+    "align": ["wide"]
+  }
+}

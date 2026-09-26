@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "cc/tri-panel-side",
+  "title": "Panneau",
+  "category": "cours-chambertin",
+  "icon": "index-card",
+  "description": "Un panneau de la grille : titre, paragraphes, et un éventuel bouton (ajouter un paragraphe avec la classe CSS additionnelle \"cc-bento-action\" et un lien sur tout le texte).",
+  "textdomain": "cours-chambertin",
+  "parent": [ "cc/tri-panel" ],
+  "attributes": {
+    "accent": {
+      "type": "string",
+      "default": "",
+      "enum": [ "", "ecole", "college" ]
+    },
+    "title": {
+      "type": "string",
+      "source": "html",
+      "selector": "h3",
+      "default": ""
+    }
+  },
+  "supports": {
+    "html": false
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "cc/timeline-item",
+  "title": "Étape de frise",
+  "category": "cours-chambertin",
+  "icon": "marker",
+  "description": "Une étape datée de la frise chronologique : date, titre, un ou plusieurs paragraphes.",
+  "textdomain": "cours-chambertin",
+  "parent": [ "cc/timeline" ],
+  "attributes": {
+    "date": {
+      "type": "string",
+      "source": "html",
+      "selector": ".cc-timeline-date",
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "source": "html",
+      "selector": ".cc-timeline-body h3",
+      "default": ""
+    },
+    "future": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "supports": {
+    "html": false
+  }
+}
