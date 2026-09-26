@@ -24,7 +24,6 @@ CONTENT_DIR = os.path.join(ROOT, "content")
 
 SITE_NAME = "Cours Chambertin"
 SITE_TAGLINE = "École et Collège privés · Asnières-sur-Seine"
-ORIGINAL_PREFIX = "https://www.courschambertin.fr/clone0726"
 
 # Domaine de production visé (à ajuster ici le jour du déploiement définitif :
 # toutes les URLs absolues — canonical, Open Graph, Schema.org — en dépendent).
@@ -148,16 +147,8 @@ def section_of(page_id):
         return "college"
     return ""
 
-# Chemin (dans le site d'origine) -> chemin (sur ce site), pour la réécriture des liens.
-ORIGINAL_PATH_TO_NEW = {}
-for p in PAGES:
-    if p.get("is_news"):
-        # Permaliens d'origine du type /2026/08/01/<slug>/
-        slug = p["file"].split("_", 1)[1].rsplit(".", 1)[0]
-        # tel qu'observé dans le contenu source
-        ORIGINAL_PATH_TO_NEW[f"/2026/08/01/{slug}/"] = p["path"]
-    ORIGINAL_PATH_TO_NEW["/" + p["path"]] = p["path"]
-ORIGINAL_PATH_TO_NEW["/"] = ""  # accueil
+# Chemins connus du site (pour valider les liens internes des fragments).
+KNOWN_PATHS = {p["path"] for p in PAGES}
 
 # Menu principal (correspond au menu WordPress "Menu Haut" d'origine)
 NAV_MENU = [
@@ -313,19 +304,26 @@ def to_relative(target_path, depth):
     return prefix + target_path
 
 
-IMG_RE = re.compile(re.escape(ORIGINAL_PREFIX) + r"/wp-content/uploads/[^\"'\s]*?/([A-Za-z0-9_.-]+\.(?:jpg|jpeg|png|svg|webp))")
+# Les fragments de content/ référencent les images et les liens internes en
+# chemins racine-relatifs (ex. "/assets/images/photo.jpg", "/ecole/cp/") —
+# le même format qu'un post_content WordPress avec des liens relatifs au
+# domaine. rewrite_content() les convertit en chemins relatifs à la page
+# selon sa profondeur dans l'arborescence.
 IMG_TAG_JPEG_RE = re.compile(
-    r'<img\b[^>]*?src="' + re.escape(ORIGINAL_PREFIX)
-    + r'/wp-content/uploads/[^"]*?/([A-Za-z0-9_.-]+)\.(?:jpg|jpeg)"[^>]*>'
+    r'<img\b[^>]*?src="/assets/images/([A-Za-z0-9_.-]+)\.(?:jpg|jpeg)"[^>]*>'
 )
-LINK_RE = re.compile(re.escape(ORIGINAL_PREFIX) + r"(/[^\"'\s]*)?")
+# Lookbehind/lookahead sur un délimiteur (guillemet ou parenthèse) pour ne
+# rewriter qu'un chemin racine-relatif isolé, sans jamais retomber sur un
+# chemin déjà relatif (ex. "../assets/images/x.webp" produit par l'étape 0
+# ci-dessous, qui contient aussi "/assets/images/x.webp" en sous-chaîne).
+IMG_RE = re.compile(r'(?<=["\'(])(/assets/images/[A-Za-z0-9_.-]+\.(?:jpg|jpeg|png|svg|webp))(?=["\')])')
+LINK_RE = re.compile(r'href="(/[^"#]*)(#[^"]*)?"')
 
 
 def rewrite_content(html, depth):
-    # 0) <img src=".../photo.jpg" ...> -> <picture><source .webp>...<img ...>
-    #    </picture> quand une variante WebP existe à côté du JPEG (générée par
-    #    convert_images_to_webp.py). Opère sur l'URL d'origine, avant la
-    #    réécriture des chemins ci-dessous.
+    # 0) <img src="/assets/images/photo.jpg" ...> -> <picture><source .webp>
+    #    ...</picture> quand une variante WebP existe à côté du JPEG (générée
+    #    par convert_images_to_webp.py).
     def picture_sub(m):
         stem = m.group(1)
         if os.path.exists(os.path.join(ROOT, "assets", "images", stem + ".webp")):
@@ -336,18 +334,20 @@ def rewrite_content(html, depth):
 
     # 1) images -> assets/images/<file>
     def img_sub(m):
-        fname = m.group(1)
-        return to_relative("assets/images/" + fname, depth)
+        path = m.group(1).lstrip("/")
+        return to_relative(path, depth)
     html = IMG_RE.sub(img_sub, html)
 
     # 2) liens internes -> chemins relatifs
     def link_sub(m):
-        path = m.group(1) or "/"
-        if not path.startswith("/"):
-            path = "/" + path
-        if path in ORIGINAL_PATH_TO_NEW:
-            return to_relative(ORIGINAL_PATH_TO_NEW[path], depth)
-        return to_relative("", depth)  # repli : accueil
+        raw_path, fragment = m.group(1), m.group(2) or ""
+        target = raw_path.lstrip("/")
+        if target and not target.endswith("/"):
+            target += "/"
+        if target not in KNOWN_PATHS:
+            print(f"  ! lien interne inconnu ignoré : {raw_path!r} (repli accueil)")
+            target = ""
+        return f'href="{to_relative(target, depth)}{fragment}"'
     html = LINK_RE.sub(link_sub, html)
     return html
 
