@@ -314,10 +314,26 @@ def to_relative(target_path, depth):
 
 
 IMG_RE = re.compile(re.escape(ORIGINAL_PREFIX) + r"/wp-content/uploads/[^\"'\s]*?/([A-Za-z0-9_.-]+\.(?:jpg|jpeg|png|svg|webp))")
+IMG_TAG_JPEG_RE = re.compile(
+    r'<img\b[^>]*?src="' + re.escape(ORIGINAL_PREFIX)
+    + r'/wp-content/uploads/[^"]*?/([A-Za-z0-9_.-]+)\.(?:jpg|jpeg)"[^>]*>'
+)
 LINK_RE = re.compile(re.escape(ORIGINAL_PREFIX) + r"(/[^\"'\s]*)?")
 
 
 def rewrite_content(html, depth):
+    # 0) <img src=".../photo.jpg" ...> -> <picture><source .webp>...<img ...>
+    #    </picture> quand une variante WebP existe à côté du JPEG (générée par
+    #    convert_images_to_webp.py). Opère sur l'URL d'origine, avant la
+    #    réécriture des chemins ci-dessous.
+    def picture_sub(m):
+        stem = m.group(1)
+        if os.path.exists(os.path.join(ROOT, "assets", "images", stem + ".webp")):
+            webp_rel = to_relative(f"assets/images/{stem}.webp", depth)
+            return f'<picture><source srcset="{webp_rel}" type="image/webp">{m.group(0)}</picture>'
+        return m.group(0)
+    html = IMG_TAG_JPEG_RE.sub(picture_sub, html)
+
     # 1) images -> assets/images/<file>
     def img_sub(m):
         fname = m.group(1)
@@ -475,7 +491,7 @@ TEMPLATE = """<!DOCTYPE html>
 <header id="site-header">
   <div class="cc-header-inner">
     <a class="cc-logo" href="{home_href}">
-      <img src="{logo_src}" alt="Cours Chambertin" width="220" height="80">
+      <img src="{logo_src}" alt="Cours Chambertin" width="98" height="100">
     </a>
     <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="site-nav">
       <span></span><span></span><span></span>
@@ -540,9 +556,51 @@ def write_page(page):
     print("built", out_file.replace(ROOT + "/", ""))
 
 
+def write_sitemap():
+    """sitemap.xml listant les 27 pages publiques. Pas de <lastmod> : on ne
+    dispose pas de dates de modification réelles et une date fabriquée
+    induirait les moteurs en erreur."""
+    def priority(page):
+        if page["path"] == "":
+            return "1.0"
+        depth = depth_of(page["path"])
+        if page["id"] in ("165", "166", "298"):  # mentions légales, confidentialité, plan du site
+            return "0.3"
+        return "0.8" if depth == 1 else "0.6"
+
+    urls = "\n".join(
+        f'  <url>\n    <loc>{abs_url(page["path"])}</loc>\n'
+        f'    <priority>{priority(page)}</priority>\n  </url>'
+        for page in PAGES
+    )
+    sitemap = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f'{urls}\n'
+        '</urlset>\n'
+    )
+    with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
+        f.write(sitemap)
+    print("built sitemap.xml")
+
+
+def write_robots():
+    robots = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "\n"
+        f"Sitemap: {abs_url('sitemap.xml')}\n"
+    )
+    with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
+        f.write(robots)
+    print("built robots.txt")
+
+
 def main():
     for page in PAGES:
         write_page(page)
+    write_sitemap()
+    write_robots()
     print(f"\n{len(PAGES)} pages générées.")
 
 
