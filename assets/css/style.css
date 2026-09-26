@@ -441,7 +441,7 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
 .cc-page-split-block h2 { margin-bottom: .9rem; }
 .cc-page-split-block p:last-child { margin-bottom: 0; }
 .cc-page-split-block:not(:first-child) {
-  border-top: 3px solid var(--cc-or); padding-top: 1.75rem;
+  background: var(--cc-blanc); padding: 1.75rem; border-top: 3px solid var(--cc-or);
 }
 .cc-page-split-side {
   background: #fff; padding: 1.75rem; border-top: 3px solid var(--cc-or);
