@@ -11,7 +11,7 @@
  * déjà utilisé dans content/*.html (/2026/08/01/<slug>/).
  */
 
-if ( ! defined( 'WP_CLI' ) ) {
+if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 

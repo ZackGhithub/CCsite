@@ -78,6 +78,12 @@ wp eval-file wp-theme/migration/import.php /chemin/vers/le/depot/CCsite
 L'argument est le chemin du dépôt CCsite (celui qui contient `content/`
 et `assets/images/`), pas celui du thème.
 
+**Pas d'accès SSH/WP-CLI ?** `wp-plugin/cc-migration/` fait exactement la
+même chose depuis un bouton dans l'admin WordPress (Extensions > Ajouter >
+Téléverser) — voir `wp-plugin/README.md`. La logique de migration
+(`migrate-functions.php`) est partagée entre les deux, un seul endroit à
+maintenir.
+
 ## Ce qu'il reste à faire après la migration
 
 1. **Vérifier les pages avec frise ou panneaux** (Notre histoire, École,

@@ -1,0 +1,275 @@
+<?php
+/**
+ * Fonctions de migration partagées entre le script WP-CLI
+ * (migration/import.php) et le plugin d'admin autonome
+ * (wp-plugin/cc-migration/), pour qu'il n'existe qu'une seule
+ * implémentation à maintenir.
+ *
+ * Ne dépend pas de WP_CLI : utilise cc_migrate_log()/cc_migrate_warning()
+ * ci-dessous, qui s'adaptent au contexte d'exécution (ligne de commande ou
+ * page d'admin WordPress).
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Lignes de log accumulées quand on tourne hors WP-CLI (le plugin d'admin
+ * les affiche après coup ; WP-CLI les affiche au fil de l'eau).
+ */
+$GLOBALS['cc_migrate_log_lines'] = array();
+
+function cc_migrate_log( $message ) {
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		WP_CLI::log( $message );
+		return;
+	}
+	$GLOBALS['cc_migrate_log_lines'][] = array( 'level' => 'info', 'message' => $message );
+}
+
+function cc_migrate_warning( $message ) {
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		WP_CLI::warning( $message );
+		return;
+	}
+	$GLOBALS['cc_migrate_log_lines'][] = array( 'level' => 'warning', 'message' => $message );
+}
+
+/** Importe les JPEG/PNG de assets/images/ dans la médiathèque (idempotent). */
+function cc_migrate_import_images( $images_dir ) {
+	$map   = array();
+	$files = array_merge( glob( $images_dir . '/*.jpg' ), glob( $images_dir . '/*.jpeg' ), glob( $images_dir . '/*.png' ) );
+	sort( $files );
+
+	foreach ( $files as $file ) {
+		$filename = basename( $file );
+		$title    = pathinfo( $filename, PATHINFO_FILENAME );
+
+		$existing = new WP_Query(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'title'          => $title,
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			)
+		);
+		if ( $existing->posts ) {
+			$map[ $filename ] = wp_get_attachment_url( $existing->posts[0] );
+			continue;
+		}
+
+		$upload = wp_upload_bits( $filename, null, file_get_contents( $file ) );
+		if ( ! empty( $upload['error'] ) ) {
+			cc_migrate_warning( "Image non importée ({$filename}) : {$upload['error']}" );
+			continue;
+		}
+
+		$filetype  = wp_check_filetype( $filename, null );
+		$attach_id = wp_insert_attachment(
+			array(
+				'post_mime_type' => $filetype['type'],
+				'post_title'     => $title,
+				'post_content'   => '',
+				'post_status'    => 'inherit',
+			),
+			$upload['file']
+		);
+
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $upload['file'] ) );
+
+		$map[ $filename ] = $upload['url'];
+		cc_migrate_log( "Image importée : {$filename}" );
+	}
+
+	return $map;
+}
+
+/** Remplace les chemins /assets/images/<fichier> par l'URL réelle du média importé. */
+function cc_migrate_apply_image_map( $content, array $map ) {
+	return preg_replace_callback(
+		'#/assets/images/([A-Za-z0-9_.-]+\.(?:jpg|jpeg|png))#',
+		function ( $m ) use ( $map ) {
+			return isset( $map[ $m[1] ] ) ? $map[ $m[1] ] : $m[0];
+		},
+		$content
+	);
+}
+
+/** Crée les pages (avec leur hiérarchie parent/enfant) — idempotent. */
+function cc_migrate_create_pages( array $pages, $content_dir, array $image_map ) {
+	$id_map = array();
+
+	foreach ( $pages as $page ) {
+		$lookup_path = '' === $page['path'] ? 'accueil' : $page['path'];
+		$existing    = get_page_by_path( $lookup_path );
+		if ( $existing ) {
+			cc_migrate_log( "Page déjà présente, ignorée : {$page['title']}" );
+			$id_map[ $page['id'] ] = $existing->ID;
+			continue;
+		}
+
+		$html   = file_get_contents( $content_dir . '/' . $page['file'] );
+		$blocks = cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map );
+
+		// Le parent (s'il y en a un) a nécessairement déjà été créé : dans
+		// pages.php, chaque page apparaît après son parent. Régler
+		// post_parent dès la création (plutôt qu'en passe séparée une fois
+		// toutes les pages créées) évite qu'une page comme "admissions"
+		// (id 160, racine) ne se fasse abusivement passer pour déjà
+		// existante par get_page_by_path() à cause de "ecole/admissions"
+		// ou "college/admissions" : celles-ci porteraient sinon, le temps
+		// d'une passe, le même post_name "admissions" sans être encore
+		// rattachées à leur parent, et sembleraient être cette page racine.
+		$post_id = wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => $page['title'],
+				'post_name'    => '' === $page['path'] ? 'accueil' : basename( $page['path'] ),
+				'post_excerpt' => $page['excerpt'],
+				'post_content' => $blocks,
+				'post_parent'  => $page['parent'] ? ( $id_map[ $page['parent'] ] ?? 0 ) : 0,
+			),
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			cc_migrate_warning( "Échec création page « {$page['title']} » : " . $post_id->get_error_message() );
+			continue;
+		}
+
+		$id_map[ $page['id'] ] = $post_id;
+		cc_migrate_log( "Page créée : {$page['title']} (#{$post_id})" );
+	}
+
+	return $id_map;
+}
+
+/** Crée les articles d'actualité — idempotent. */
+function cc_migrate_create_posts( array $posts, $content_dir, array $image_map ) {
+	foreach ( $posts as $post_def ) {
+		$existing = get_page_by_path( $post_def['slug'], OBJECT, 'post' );
+		if ( $existing ) {
+			cc_migrate_log( "Article déjà présent, ignoré : {$post_def['title']}" );
+			continue;
+		}
+
+		$html   = file_get_contents( $content_dir . '/' . $post_def['file'] );
+		$blocks = cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map );
+
+		$post_id = wp_insert_post(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'publish',
+				'post_title'   => $post_def['title'],
+				'post_name'    => $post_def['slug'],
+				'post_excerpt' => $post_def['excerpt'],
+				'post_content' => $blocks,
+				'post_date'    => $post_def['date_iso'],
+			),
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			cc_migrate_warning( "Échec création article « {$post_def['title']} » : " . $post_id->get_error_message() );
+			continue;
+		}
+
+		cc_migrate_log( "Article créé : {$post_def['title']} (#{$post_id})" );
+	}
+}
+
+/** Recrée un menu à partir d'entrées {id,label[,children]} du manifest — idempotent. */
+function cc_migrate_create_menu( $menu_name, $location, array $entries, array $id_map ) {
+	$menu = wp_get_nav_menu_object( $menu_name );
+	if ( ! $menu ) {
+		$menu_id = wp_create_nav_menu( $menu_name );
+	} else {
+		$menu_id = $menu->term_id;
+		if ( wp_get_nav_menu_items( $menu_id ) ) {
+			cc_migrate_log( "Menu « {$menu_name} » déjà rempli, non modifié." );
+			cc_migrate_assign_menu_location( $menu_id, $location );
+			return;
+		}
+	}
+
+	foreach ( $entries as $entry ) {
+		if ( ! isset( $id_map[ $entry['id'] ] ) ) {
+			continue;
+		}
+		$parent_menu_item_id = wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'     => $entry['label'],
+				'menu-item-object-id' => $id_map[ $entry['id'] ],
+				'menu-item-object'    => 'page',
+				'menu-item-type'      => 'post_type',
+				'menu-item-status'    => 'publish',
+			)
+		);
+		foreach ( $entry['children'] ?? array() as $child_id ) {
+			if ( ! isset( $id_map[ $child_id ] ) ) {
+				continue;
+			}
+			wp_update_nav_menu_item(
+				$menu_id,
+				0,
+				array(
+					'menu-item-title'     => get_the_title( $id_map[ $child_id ] ),
+					'menu-item-object-id' => $id_map[ $child_id ],
+					'menu-item-object'    => 'page',
+					'menu-item-type'      => 'post_type',
+					'menu-item-status'    => 'publish',
+					'menu-item-parent-id' => $parent_menu_item_id,
+				)
+			);
+		}
+	}
+
+	cc_migrate_assign_menu_location( $menu_id, $location );
+	cc_migrate_log( "Menu créé et assigné : {$menu_name} -> {$location}" );
+}
+
+function cc_migrate_assign_menu_location( $menu_id, $location ) {
+	$locations              = get_theme_mod( 'nav_menu_locations', array() );
+	$locations[ $location ] = $menu_id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+}
+
+/**
+ * Point d'entrée unique, appelé par le script WP-CLI et par le plugin
+ * d'admin. $content_dir et $images_dir pointent respectivement vers un
+ * dossier content/ et un dossier assets/images/ (peu importe où ils vivent
+ * réellement sur le disque).
+ */
+function cc_migrate_run( array $manifest, $content_dir, $images_dir ) {
+	cc_migrate_log( 'Import des images...' );
+	$image_map = cc_migrate_import_images( $images_dir );
+
+	cc_migrate_log( 'Création des pages...' );
+	$id_map = cc_migrate_create_pages( $manifest['pages'], $content_dir, $image_map );
+
+	cc_migrate_log( "Création des articles d'actualité..." );
+	cc_migrate_create_posts( $manifest['posts'], $content_dir, $image_map );
+
+	cc_migrate_log( 'Recréation des menus...' );
+	cc_migrate_create_menu( 'Menu principal', 'primary', $manifest['nav_menu'], $id_map );
+	cc_migrate_create_menu(
+		'Plan du site (pied de page)',
+		'footer',
+		array_map( static fn( $e ) => $e + array( 'children' => array() ), $manifest['footer_menu'] ),
+		$id_map
+	);
+
+	if ( isset( $id_map['2'] ) ) {
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $id_map['2'] );
+		cc_migrate_log( 'Page d’accueil statique réglée sur "Cours Chambertin".' );
+	}
+
+	return $GLOBALS['cc_migrate_log_lines'];
+}

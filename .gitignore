@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# Artefacts générés par wp-theme/build-zip.sh et wp-plugin/build-zip.sh :
+# copies de contenu/images déjà versionnées ailleurs, et fichiers .zip
+# téléchargeables reconstruits à la demande, pas à committer.
+/wp-plugin/cc-migration/includes/
+/wp-plugin/cc-migration/data/
+*.zip
