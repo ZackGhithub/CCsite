@@ -155,8 +155,9 @@ function cc_block_timeline( DOMElement $ol ) {
 		if ( $future ) {
 			$itemAttrs['future'] = true;
 		}
-		$items .= cc_block_open( 'cc/timeline-item', $itemAttrs ) . "\n"
-			. '<li' . ( $future ? ' class="cc-avenir"' : '' ) . '>'
+		$liClass = 'wp-block-cc-timeline-item' . ( $future ? ' cc-avenir' : '' );
+		$items  .= cc_block_open( 'cc/timeline-item', $itemAttrs ) . "\n"
+			. '<li class="' . $liClass . '">'
 			. '<div class="cc-timeline-date">' . $date . '</div>'
 			. '<div class="cc-timeline-body"><h3>' . $title . '</h3>'
 			. $paragraphs

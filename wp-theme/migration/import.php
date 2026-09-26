@@ -108,6 +108,15 @@ function cc_migrate_create_pages( array $pages, $content_dir, array $image_map )
 		$html   = file_get_contents( $content_dir . '/' . $page['file'] );
 		$blocks = cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map );
 
+		// Le parent (s'il y en a un) a nécessairement déjà été créé : dans
+		// pages.php, chaque page apparaît après son parent. Régler
+		// post_parent dès la création (plutôt qu'en passe séparée une fois
+		// toutes les pages créées) évite qu'une page comme "admissions"
+		// (id 160, racine) ne se fasse abusivement passer pour déjà
+		// existante par get_page_by_path() à cause de "ecole/admissions"
+		// ou "college/admissions" : celles-ci porteraient sinon, le temps
+		// d'une passe, le même post_name "admissions" sans être encore
+		// rattachées à leur parent, et sembleraient être cette page racine.
 		$post_id = wp_insert_post(
 			array(
 				'post_type'    => 'page',
@@ -116,6 +125,7 @@ function cc_migrate_create_pages( array $pages, $content_dir, array $image_map )
 				'post_name'    => '' === $page['path'] ? 'accueil' : basename( $page['path'] ),
 				'post_excerpt' => $page['excerpt'],
 				'post_content' => $blocks,
+				'post_parent'  => $page['parent'] ? ( $id_map[ $page['parent'] ] ?? 0 ) : 0,
 			),
 			true
 		);
@@ -127,14 +137,6 @@ function cc_migrate_create_pages( array $pages, $content_dir, array $image_map )
 
 		$id_map[ $page['id'] ] = $post_id;
 		WP_CLI::log( "Page créée : {$page['title']} (#{$post_id})" );
-	}
-
-	// Deuxième passe : hiérarchie parent/enfant, une fois tous les ID connus.
-	foreach ( $pages as $page ) {
-		if ( ! $page['parent'] || ! isset( $id_map[ $page['id'] ], $id_map[ $page['parent'] ] ) ) {
-			continue;
-		}
-		wp_update_post( array( 'ID' => $id_map[ $page['id'] ], 'post_parent' => $id_map[ $page['parent'] ] ) );
 	}
 
 	return $id_map;

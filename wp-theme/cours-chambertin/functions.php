@@ -107,3 +107,27 @@ function cc_widgets_init() {
 	);
 }
 add_action( 'widgets_init', 'cc_widgets_init' );
+
+/**
+ * À la première activation d'un thème, WordPress assigne d'office des
+ * widgets par défaut (Archives, Catégories...) à la première zone de
+ * widgets qu'il trouve sans configuration existante — pour qu'un thème
+ * fraîchement activé n'ait pas l'air cassé. Cela remplit "Pied de page —
+ * Collège"/"École" avec des widgets sans rapport, alors que footer.php a
+ * déjà un repli statique pour le cas vide. On vide donc ces deux zones
+ * précises juste après l'activation, pour retrouver le comportement voulu.
+ */
+function cc_clear_default_footer_widgets() {
+	$sidebars_widgets = wp_get_sidebars_widgets();
+	$changed          = false;
+	foreach ( array( 'footer-college', 'footer-ecole' ) as $id ) {
+		if ( ! empty( $sidebars_widgets[ $id ] ) ) {
+			$sidebars_widgets[ $id ] = array();
+			$changed                 = true;
+		}
+	}
+	if ( $changed ) {
+		wp_set_sidebars_widgets( $sidebars_widgets );
+	}
+}
+add_action( 'after_switch_theme', 'cc_clear_default_footer_widgets' );
