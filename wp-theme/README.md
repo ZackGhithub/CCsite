@@ -41,31 +41,60 @@ Squelette du thème sur-mesure (sans Divi), à installer dans
     « cc-bento-action » avec un lien sur tout son texte suffit — la
     feuille de style du thème le rend comme un bouton.
 
-## Ce qu'il reste à faire une fois WordPress installé
+## Migration du contenu (`migration/`)
 
-1. **Activer le thème**, régler Réglages > Lecture (page d'accueil
-   statique = « Accueil »), créer les pages listées dans `PAGES` de
-   `build.py` avec la même hiérarchie parent/enfant.
-2. **Coller le contenu** : chaque `content/<id>_<slug>.html` correspond
-   au `post_content` d'une page — copier tel quel en mode « Éditeur de
-   code » du bloc éditeur, puis vérifier qu'aucun bloc n'apparaît en
-   « non reconnu ».
-3. **Recréer les menus** (Apparence > Menus) : structure dans `NAV_MENU`
-   et `FOOTER_NAV` de `build.py`, à assigner aux emplacements
-   « Menu principal » et « Plan du site (pied de page) ».
-4. **Importer les images** dans la médiathèque (photos + logos de
-   `assets/images/`) ; renseigner les logos École/Collège/master en
-   theme mods (`cc_logo_ecole_url`, `cc_logo_college_url`,
-   `cc_logo_master_url`) tant qu'aucun champ dédié n'existe.
-5. **Créer les 3 articles d'actualité** comme Articles (pas des Pages),
-   avec la date de publication correspondant à leur ancien permalien.
-6. **Remplacer `<ol class="cc-timeline">` et `<div class="cc-tri-panel">`**
-   par les blocs `cc/timeline` et `cc/tri-panel` au moment du collage du
-   contenu (étape 2) : le HTML brut de `content/*.html` pour ces deux
-   composants ne sera pas reconnu tel quel par l'éditeur de blocs, il faut
-   recomposer ces sections avec les nouveaux blocs (voir leur description
-   dans l'inserteur).
-7. **Bandeau d'annonce** : réglable via `cc_announce_message` et
+Le contenu des 27 pages/articles n'est **pas** copié-collé à la main dans
+l'admin WordPress : un script WP-CLI automatise la conversion et
+l'import, pour éviter les erreurs de copier-coller et obtenir dès le
+départ de vraies pages en blocs Gutenberg (pas du HTML brut).
+
+- `migration/pages.php` — manifest des pages/articles/menus, porté
+  directement du tableau `PAGES` (et `NAV_MENU`/`FOOTER_NAV`) de
+  `build.py`.
+- `migration/html-to-blocks.php` — convertit un fragment `content/*.html`
+  en markup de blocs Gutenberg (`<!-- wp:... -->`). Portée volontaire et
+  bornée : sections (`cc-section`/`cc-narrow`) → bloc Groupe natif,
+  titres/paragraphes → blocs natifs, `cc-timeline`/`cc-tri-panel` → les
+  blocs custom de `blocks/`. Tout composant sans équivalent (bento,
+  panneaux doubles, comparatif d'images, plan du site, FAQ, `<style>`
+  scopés...) devient un Bloc HTML fidèle plutôt que d'être décomposé au
+  hasard — convertible en blocs natifs a posteriori dans l'éditeur si
+  besoin. Testable indépendamment de WordPress (aucune fonction WP
+  utilisée) : `php -r 'require "migration/html-to-blocks.php";
+  echo cc_convert_content_to_blocks(file_get_contents("../content/2_accueil.html"));'`
+- `migration/import.php` — orchestration : importe les images de
+  `assets/images/` dans la médiathèque, crée les 24 pages avec leur
+  hiérarchie parent/enfant, crée les 3 articles d'actualité (avec la date
+  de publication qui reproduit leur ancien permalien), recrée les deux
+  menus et les assigne aux emplacements du thème, règle la page d'accueil
+  statique. Idempotent (rejouable sans dupliquer).
+
+**Exécution**, une fois WordPress installé et le thème activé :
+
+```bash
+wp eval-file wp-theme/migration/import.php /chemin/vers/le/depot/CCsite
+```
+
+L'argument est le chemin du dépôt CCsite (celui qui contient `content/`
+et `assets/images/`), pas celui du thème.
+
+## Ce qu'il reste à faire après la migration
+
+1. **Vérifier les pages avec frise ou panneaux** (Notre histoire, École,
+   Collège, Contact, Admissions) : relire le rendu des blocs `cc/timeline`
+   et `cc/tri-panel` générés, notamment les couleurs d'accent École/Collège.
+2. **Renseigner les logos** École/Collège/master en theme mods
+   (`cc_logo_ecole_url`, `cc_logo_college_url`, `cc_logo_master_url`)
+   depuis les images importées par le script, tant qu'aucun champ dédié
+   n'existe dans le Customizer.
+3. **Remplir les zones de widgets** du pied de page (`footer-college`,
+   `footer-ecole`) si le contenu par défaut codé dans `footer.php` doit
+   être personnalisé.
+4. **Relire les Blocs HTML** issus des composants sans équivalent natif
+   (bento, panneaux doubles, comparatif d'images, plan du site, FAQ) —
+   fonctionnels tels quels, mais à reconvertir en blocs natifs si l'équipe
+   éditoriale doit les modifier souvent sans toucher au HTML.
+5. **Bandeau d'annonce** : réglable via `cc_announce_message` et
    `cc_announce_target_path` (theme mods) — prévoir un panneau
    Personnaliser dédié si l'équipe éditoriale doit le modifier sans
    toucher au code.
