@@ -437,9 +437,12 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
   display: grid; grid-template-columns: 3fr 1fr; gap: 3rem;
   max-width: var(--cc-max); margin: 0 auto; align-items: start;
 }
-.cc-page-split-main { display: grid; gap: 2.5rem; }
+.cc-page-split-main { display: grid; gap: 2.25rem; }
 .cc-page-split-block h2 { margin-bottom: .9rem; }
 .cc-page-split-block p:last-child { margin-bottom: 0; }
+.cc-page-split-block:not(:first-child) {
+  border-top: 3px solid var(--cc-or); padding-top: 1.75rem;
+}
 .cc-page-split-side {
   background: #fff; padding: 1.75rem; border-top: 3px solid var(--cc-or);
 }
