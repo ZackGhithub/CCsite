@@ -398,6 +398,7 @@ def render_page(page):
     css_href = to_relative("assets/css/style.css", depth)
     js_src = to_relative("assets/js/main.js", depth)
     home_href = to_relative("", depth)
+    announce_href = to_relative(BY_ID["159"]["path"], depth)
 
     breadcrumb = breadcrumb_html(page, depth)
 
@@ -417,6 +418,7 @@ def render_page(page):
         css_href=css_href,
         js_src=js_src,
         home_href=home_href,
+        announce_href=announce_href,
         logo_src=logo_src,
         favicon_src=favicon_src,
         logo_footer_src=logo_footer_src,
@@ -464,6 +466,12 @@ TEMPLATE = """<!DOCTYPE html>
 </head>
 <body data-section="{section}">
 <a class="skip-link" href="#contenu">Aller au contenu</a>
+<div id="cc-announce" class="cc-announce" data-announce-id="preinscription-college-2027">
+  <div class="cc-announce-inner">
+    <a href="{announce_href}"><strong>Ouverture de la préinscription</strong> — Collège Chambertin</a>
+    <button type="button" class="cc-announce-close" aria-label="Fermer ce message">&times;</button>
+  </div>
+</div>
 <header id="site-header">
   <div class="cc-header-inner">
     <a class="cc-logo" href="{home_href}">

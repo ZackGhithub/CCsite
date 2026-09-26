@@ -2,6 +2,27 @@
 (function () {
   "use strict";
 
+  // Bandeau d'annonce : fermeture mémorisée par annonce (la clé change si le
+  // message change, pour que la fermeture d'une ancienne annonce ne masque
+  // pas la suivante).
+  var announce = document.getElementById("cc-announce");
+  if (announce) {
+    var key = "cc-announce-dismissed-" + announce.dataset.announceId;
+    var dismissed = false;
+    try { dismissed = window.localStorage.getItem(key) === "1"; } catch (e) {}
+    if (dismissed) {
+      announce.remove();
+    } else {
+      var closeBtn = announce.querySelector(".cc-announce-close");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", function () {
+          announce.remove();
+          try { window.localStorage.setItem(key, "1"); } catch (e) {}
+        });
+      }
+    }
+  }
+
   var toggle = document.getElementById("nav-toggle");
   var nav = document.getElementById("site-nav");
 
