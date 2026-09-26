@@ -190,15 +190,7 @@ _ADDRESS_COLLEGE = {
     "addressLocality": "Asnières-sur-Seine",
     "addressCountry": "FR",
 }
-_ADDRESS_ECOLE = {
-    # Pas de streetAddress : l'adresse précise n'est communiquée qu'aux
-    # familles lors du rendez-vous individuel, pour des raisons de
-    # confidentialité.
-    "@type": "PostalAddress",
-    "postalCode": "92600",
-    "addressLocality": "Asnières-sur-Seine",
-    "addressCountry": "FR",
-}
+_ADDRESS_ECOLE = _ADDRESS_COLLEGE  # École et Collège partagent la même adresse.
 
 ORG_ID = abs_url("") + "#organization"
 ECOLE_ID = abs_url("ecole/") + "#school"
@@ -511,7 +503,7 @@ TEMPLATE = """<!DOCTYPE html>
       </div>
       <div>
         <h2>École Chambertin</h2>
-        <p>92600 Asnières-sur-Seine<br>Réouverture en septembre 2027</p>
+        <p>9 avenue de la Marne<br>92600 Asnières-sur-Seine<br>Réouverture en septembre 2027</p>
       </div>
     </div>
     <div class="cc-pied-bas">

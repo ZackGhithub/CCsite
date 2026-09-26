@@ -433,7 +433,7 @@ figcaption {
   padding: 0 0 .7rem; border-bottom: 1px solid rgba(255,255,255,.16);
 }
 .cc-pied p { font-size: 14px; line-height: 1.65; color: #e2d3c2; margin: 0; }
-.cc-pied-marque img { width: 100%; max-width: 170px; height: auto; margin: 0 0 1.4rem; }
+.cc-pied-marque img { width: 100%; max-width: 48px; height: auto; margin: 0 0 1.1rem; }
 .cc-pied-marque p { max-width: 34ch; margin-bottom: .9rem; }
 .cc-pied-itineraire {
   display: inline-block; margin-top: .3rem; font-size: 13px; font-weight: 600;
