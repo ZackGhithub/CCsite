@@ -137,7 +137,18 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
   gap: 1.5rem;
 }
 
-.cc-logo img { height: 56px; width: auto; }
+/* .cc-logo : repli texte (voir cc_site_logo()) ; .custom-logo-link/.custom-logo :
+   markup natif de the_custom_logo() (Personnaliser > Identité du site) —
+   WordPress ne pose aucune limite de taille par défaut, seul le fichier
+   importé la détermine, d'où un logo énorme si l'image source est grande. */
+.cc-logo img,
+.custom-logo-link img {
+  height: 56px; width: auto; max-width: 100%;
+}
+@media (max-width: 480px) {
+  .cc-logo img,
+  .custom-logo-link img { height: 40px; }
+}
 
 .site-nav ul {
   list-style: none; margin: 0; padding: 0;
