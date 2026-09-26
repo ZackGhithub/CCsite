@@ -139,10 +139,15 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
 }
 .site-nav .sub-menu li { display: block; }
 .site-nav .sub-menu a {
-  display: block; padding: .55rem 1.2rem; border: 0; font-weight: 500;
+  display: block; padding: .55rem 1.2rem; font-weight: 500;
   font-size: .88rem; white-space: nowrap;
+  border-left: 2px solid transparent;
 }
-.site-nav .sub-menu a:hover { background: var(--cc-craie); color: var(--cc-section-accent); }
+.site-nav .sub-menu li.current > a,
+.site-nav .sub-menu a:hover, .site-nav .sub-menu a:focus-visible {
+  background: var(--cc-craie); color: var(--cc-section-accent);
+  border-left-color: var(--cc-section-accent);
+}
 
 .nav-toggle {
   display: none; flex-direction: column; gap: 5px;

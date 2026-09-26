@@ -344,10 +344,10 @@ def nav_html(current_id, depth):
         is_current = (current_id == entry["id"]) or (BY_ID.get(current_id, {}).get("parent") == entry["id"])
         cls = ' class="current"' if is_current else ""
         if entry["children"]:
-            sub_items = "".join(
-                f'<li><a href="{to_relative(BY_ID[c]["path"], depth)}">{BY_ID[c]["title"]}</a></li>'
-                for c in entry["children"]
-            )
+            def sub_item(c):
+                sub_cls = ' class="current"' if c == current_id else ""
+                return f'<li{sub_cls}><a href="{to_relative(BY_ID[c]["path"], depth)}">{BY_ID[c]["title"]}</a></li>'
+            sub_items = "".join(sub_item(c) for c in entry["children"])
             items.append(
                 f'<li class="has-children"{cls}><a href="{href}">{entry["label"]}</a>'
                 f'<ul class="sub-menu">{sub_items}</ul></li>'
