@@ -3,11 +3,14 @@
  * Script de migration — à exécuter une fois WordPress installé, avec le
  * thème cours-chambertin actif :
  *
- *   wp eval-file wp-theme/migration/import.php /chemin/vers/le/depot/CCsite
+ *   wp eval-file wp-theme/migration/import.php /chemin/vers/le/depot/CCsite [--force]
  *
  * L'argument est le chemin du dépôt CCsite (celui qui contient content/ et
- * assets/images/), pas celui du thème. Idempotent : peut être relancé sans
- * dupliquer les pages, articles ou images déjà importés.
+ * assets/images/), pas celui du thème. Idempotent par défaut : peut être
+ * relancé sans dupliquer les pages, articles ou images déjà importés.
+ * Avec "--force" en second argument, les pages/articles déjà présents sont
+ * mis à jour depuis content/*.html au lieu d'être ignorés (écrase aussi
+ * toute modification faite depuis dans l'éditeur de blocs).
  *
  * Pas d'accès SSH/WP-CLI ? Le plugin wp-plugin/cc-migration/ fait
  * exactement la même chose depuis l'admin WordPress (voir son README).
@@ -30,6 +33,7 @@ require __DIR__ . '/html-to-blocks.php';
 require __DIR__ . '/migrate-functions.php';
 $manifest = require __DIR__ . '/pages.php';
 
-cc_migrate_run( $manifest, $source . '/content', $source . '/assets/images' );
+$force = in_array( '--force', $args, true );
+cc_migrate_run( $manifest, $source . '/content', $source . '/assets/images', $force );
 
 WP_CLI::success( 'Migration terminée. Vérifier ensuite les pages contenant une frise ou des panneaux (cc/timeline, cc/tri-panel) et les composants restés en Bloc HTML (voir wp-theme/README.md).' );

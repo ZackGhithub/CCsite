@@ -249,6 +249,14 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
   gap: 1.5rem; border-top: 3px solid var(--cc-or);
 }
 .cc-bento-card--wide { grid-column: 1 / -1; }
+/* Dès qu'un bento contient une carte "wide" (pleine largeur), les cartes
+   normales qui l'accompagnent passent aussi en pleine largeur : mélanger
+   une carte pleine largeur et une carte à moitié laisse sinon un vide dans
+   la grille à 2 colonnes. N'affecte pas les bentos sans carte "wide", qui
+   restent une grille à colonnes égales. */
+.cc-bento:has(.cc-bento-card--wide) .cc-bento-card:not(.cc-bento-card--wide) {
+  grid-column: 1 / -1;
+}
 .cc-bento-card--invert {
   background: var(--cc-accent); border-top-color: var(--cc-or); color: #fff;
 }
@@ -309,6 +317,7 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
 
 .cc-dual-panel-side, .cc-tri-panel-side {
   background: #fff; padding: 2.25rem; border-top: 3px solid var(--cc-or);
+  display: flex; flex-direction: column;
 }
 .cc-dual-panel-side--ecole, .cc-tri-panel-side--ecole { border-top-color: var(--cc-bleu); }
 .cc-dual-panel-side--college, .cc-tri-panel-side--college { border-top-color: var(--cc-accent); }
@@ -318,7 +327,10 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
 .cc-dual-panel-side--ecole h3, .cc-tri-panel-side--ecole h3 { color: var(--cc-bleu); }
 .cc-dual-panel-side--college h3, .cc-tri-panel-side--college h3 { color: var(--cc-accent); }
 .cc-dual-panel-side p:last-child, .cc-tri-panel-side p:last-child { margin-bottom: 0; }
-.cc-dual-panel-side .cc-bento-action, .cc-tri-panel-side .cc-bento-action { margin-top: 1.2rem; }
+/* margin-top: auto pousse le bouton en bas de la carte quel que soit le
+   texte au-dessus : les boutons d'une même rangée s'alignent ainsi sur la
+   même hauteur, même si un panneau a plus de texte que son voisin. */
+.cc-dual-panel-side .cc-bento-action, .cc-tri-panel-side .cc-bento-action { margin-top: auto; padding-top: 1.2rem; }
 
 @media (max-width: 900px) {
   .cc-dual-panel, .cc-tri-panel, .cc-tri-panel--quatre { grid-template-columns: 1fr; }
@@ -417,6 +429,30 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
 @media (max-width: 780px) {
   .cc-media-duo { grid-template-columns: 1fr; }
   .cc-media-frame { height: auto; aspect-ratio: 4/3; }
+}
+
+/* ---------- Mise en page 3/4 + 1/4 (contenu principal + encart latéral) ---------- */
+
+.cc-page-split {
+  display: grid; grid-template-columns: 3fr 1fr; gap: 3rem;
+  max-width: var(--cc-max); margin: 0 auto; align-items: start;
+}
+.cc-page-split-main { display: grid; gap: 2.5rem; }
+.cc-page-split-block h2 { margin-bottom: .9rem; }
+.cc-page-split-block p:last-child { margin-bottom: 0; }
+.cc-page-split-side {
+  background: #fff; padding: 1.75rem; border-top: 3px solid var(--cc-or);
+}
+.cc-page-split-side h2 {
+  font-size: 1.05rem; margin-bottom: 1.3rem;
+}
+.cc-page-split-side .cc-timeline {
+  max-width: none; margin: 0 0 1.75rem; padding-left: 1.35rem;
+}
+.cc-page-split-side .cc-timeline > li::before { left: -1.75rem; }
+.cc-page-split-side .cc-timeline-date { font-size: .74rem; }
+@media (max-width: 900px) {
+  .cc-page-split { grid-template-columns: 1fr; gap: 2.5rem; }
 }
 
 /* ---------- Figures ---------- */

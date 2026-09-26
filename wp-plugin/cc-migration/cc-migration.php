@@ -34,8 +34,9 @@ function cc_migration_admin_page() {
 
 	$log = null;
 	if ( isset( $_POST['cc_migration_run'] ) && check_admin_referer( 'cc_migration_run' ) ) {
-		$manifest = require CC_MIGRATION_DIR . 'includes/pages.php';
-		$log      = cc_migrate_run( $manifest, CC_MIGRATION_DIR . 'data/content', CC_MIGRATION_DIR . 'data/images' );
+		$manifest     = require CC_MIGRATION_DIR . 'includes/pages.php';
+		$force_update = ! empty( $_POST['cc_migration_force_update'] );
+		$log          = cc_migrate_run( $manifest, CC_MIGRATION_DIR . 'data/content', CC_MIGRATION_DIR . 'data/images', $force_update );
 	} elseif ( isset( $_POST['cc_migration_fix_links'] ) && check_admin_referer( 'cc_migration_fix_links' ) ) {
 		$manifest = require CC_MIGRATION_DIR . 'includes/pages.php';
 		cc_migrate_fix_existing_links( $manifest );
@@ -74,6 +75,10 @@ function cc_migration_admin_page() {
 		. '</ul>';
 	echo '<form method="post">';
 	wp_nonce_field( 'cc_migration_run' );
+	echo '<p><label><input type="checkbox" name="cc_migration_force_update" value="1"> '
+		. '<strong>Écraser le contenu des pages/articles déjà présents</strong> avec la version actuelle du dépôt '
+		. '(à cocher pour propager une correction de contenu ou de mise en page — écrase aussi toute modification '
+		. 'faite depuis dans l\'éditeur de blocs sur ces pages précises)</label></p>';
 	submit_button( 'Lancer la migration', 'primary', 'cc_migration_run' );
 	echo '</form>';
 

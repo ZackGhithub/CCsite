@@ -120,14 +120,22 @@ function cc_migrate_localize_links( $content ) {
 	);
 }
 
-/** Crée les pages (avec leur hiérarchie parent/enfant) — idempotent. */
-function cc_migrate_create_pages( array $pages, $content_dir, array $image_map ) {
+/**
+ * Crée les pages (avec leur hiérarchie parent/enfant) — idempotent par
+ * défaut. Avec $force_update=true, une page déjà présente voit son
+ * contenu/titre/extrait ré-écrasés depuis content/*.html au lieu d'être
+ * ignorée — à utiliser pour propager une modification de contenu vers des
+ * pages déjà migrées (écrase aussi toute modification faite depuis
+ * l'éditeur de blocs sur ces pages : à réserver à la phase de mise au
+ * point, pas à un usage régulier une fois le site en édition courante).
+ */
+function cc_migrate_create_pages( array $pages, $content_dir, array $image_map, $force_update = false ) {
 	$id_map = array();
 
 	foreach ( $pages as $page ) {
 		$lookup_path = '' === $page['path'] ? 'accueil' : $page['path'];
 		$existing    = get_page_by_path( $lookup_path );
-		if ( $existing ) {
+		if ( $existing && ! $force_update ) {
 			cc_migrate_log( "Page déjà présente, ignorée : {$page['title']}" );
 			$id_map[ $page['id'] ] = $existing->ID;
 			continue;
@@ -145,36 +153,37 @@ function cc_migrate_create_pages( array $pages, $content_dir, array $image_map )
 		// ou "college/admissions" : celles-ci porteraient sinon, le temps
 		// d'une passe, le même post_name "admissions" sans être encore
 		// rattachées à leur parent, et sembleraient être cette page racine.
-		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'page',
-				'post_status'  => 'publish',
-				'post_title'   => $page['title'],
-				'post_name'    => '' === $page['path'] ? 'accueil' : basename( $page['path'] ),
-				'post_excerpt' => $page['excerpt'],
-				'post_content' => $blocks,
-				'post_parent'  => $page['parent'] ? ( $id_map[ $page['parent'] ] ?? 0 ) : 0,
-			),
-			true
+		$args = array(
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_title'   => $page['title'],
+			'post_name'    => '' === $page['path'] ? 'accueil' : basename( $page['path'] ),
+			'post_excerpt' => $page['excerpt'],
+			'post_content' => $blocks,
+			'post_parent'  => $page['parent'] ? ( $id_map[ $page['parent'] ] ?? 0 ) : 0,
 		);
+		if ( $existing ) {
+			$args['ID'] = $existing->ID;
+		}
+		$post_id = wp_insert_post( $args, true );
 
 		if ( is_wp_error( $post_id ) ) {
-			cc_migrate_warning( "Échec création page « {$page['title']} » : " . $post_id->get_error_message() );
+			cc_migrate_warning( "Échec " . ( $existing ? 'mise à jour' : 'création' ) . " page « {$page['title']} » : " . $post_id->get_error_message() );
 			continue;
 		}
 
 		$id_map[ $page['id'] ] = $post_id;
-		cc_migrate_log( "Page créée : {$page['title']} (#{$post_id})" );
+		cc_migrate_log( ( $existing ? 'Page mise à jour : ' : 'Page créée : ' ) . "{$page['title']} (#{$post_id})" );
 	}
 
 	return $id_map;
 }
 
-/** Crée les articles d'actualité — idempotent. */
-function cc_migrate_create_posts( array $posts, $content_dir, array $image_map ) {
+/** Crée les articles d'actualité — idempotent par défaut (voir $force_update sur cc_migrate_create_pages()). */
+function cc_migrate_create_posts( array $posts, $content_dir, array $image_map, $force_update = false ) {
 	foreach ( $posts as $post_def ) {
 		$existing = get_page_by_path( $post_def['slug'], OBJECT, 'post' );
-		if ( $existing ) {
+		if ( $existing && ! $force_update ) {
 			cc_migrate_log( "Article déjà présent, ignoré : {$post_def['title']}" );
 			continue;
 		}
@@ -182,25 +191,26 @@ function cc_migrate_create_posts( array $posts, $content_dir, array $image_map )
 		$html   = file_get_contents( $content_dir . '/' . $post_def['file'] );
 		$blocks = cc_migrate_localize_links( cc_migrate_apply_image_map( cc_convert_content_to_blocks( $html ), $image_map ) );
 
-		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'post',
-				'post_status'  => 'publish',
-				'post_title'   => $post_def['title'],
-				'post_name'    => $post_def['slug'],
-				'post_excerpt' => $post_def['excerpt'],
-				'post_content' => $blocks,
-				'post_date'    => $post_def['date_iso'],
-			),
-			true
+		$args = array(
+			'post_type'    => 'post',
+			'post_status'  => 'publish',
+			'post_title'   => $post_def['title'],
+			'post_name'    => $post_def['slug'],
+			'post_excerpt' => $post_def['excerpt'],
+			'post_content' => $blocks,
+			'post_date'    => $post_def['date_iso'],
 		);
+		if ( $existing ) {
+			$args['ID'] = $existing->ID;
+		}
+		$post_id = wp_insert_post( $args, true );
 
 		if ( is_wp_error( $post_id ) ) {
-			cc_migrate_warning( "Échec création article « {$post_def['title']} » : " . $post_id->get_error_message() );
+			cc_migrate_warning( "Échec " . ( $existing ? 'mise à jour' : 'création' ) . " article « {$post_def['title']} » : " . $post_id->get_error_message() );
 			continue;
 		}
 
-		cc_migrate_log( "Article créé : {$post_def['title']} (#{$post_id})" );
+		cc_migrate_log( ( $existing ? 'Article mis à jour : ' : 'Article créé : ' ) . "{$post_def['title']} (#{$post_id})" );
 	}
 }
 
@@ -310,15 +320,15 @@ function cc_migrate_fix_existing_links( array $manifest ) {
  * dossier content/ et un dossier assets/images/ (peu importe où ils vivent
  * réellement sur le disque).
  */
-function cc_migrate_run( array $manifest, $content_dir, $images_dir ) {
+function cc_migrate_run( array $manifest, $content_dir, $images_dir, $force_update = false ) {
 	cc_migrate_log( 'Import des images...' );
 	$image_map = cc_migrate_import_images( $images_dir );
 
-	cc_migrate_log( 'Création des pages...' );
-	$id_map = cc_migrate_create_pages( $manifest['pages'], $content_dir, $image_map );
+	cc_migrate_log( $force_update ? 'Création/mise à jour des pages...' : 'Création des pages...' );
+	$id_map = cc_migrate_create_pages( $manifest['pages'], $content_dir, $image_map, $force_update );
 
-	cc_migrate_log( "Création des articles d'actualité..." );
-	cc_migrate_create_posts( $manifest['posts'], $content_dir, $image_map );
+	cc_migrate_log( $force_update ? "Création/mise à jour des articles d'actualité..." : "Création des articles d'actualité..." );
+	cc_migrate_create_posts( $manifest['posts'], $content_dir, $image_map, $force_update );
 
 	cc_migrate_log( 'Recréation des menus...' );
 	cc_migrate_create_menu( 'Menu principal', 'primary', $manifest['nav_menu'], $id_map );
