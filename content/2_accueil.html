@@ -1,6 +1,6 @@
 <div class="cc-hero">
 <style>
-.cc-hero{position:relative;overflow:hidden;background:var(--cc-ink);color:#fff;
+.cc-hero{position:relative;overflow:hidden;background:#360F16;color:#fff;
  padding:clamp(3.5rem,7vw,6rem) 1.5rem}
 .cc-hero-inner{max-width:var(--cc-max);margin:0 auto;position:relative;z-index:2}
 .cc-hero-text{max-width:600px}
@@ -9,10 +9,16 @@
 .cc-hero .cc-lead-italic{color:var(--cc-or-soft)}
 .cc-hero-text>p{color:#e2d3c2;font-size:1.05rem}
 .cc-hero-mark{position:absolute;top:50%;right:-10%;transform:translateY(-50%);
- width:620px;max-width:60vw;opacity:.16;z-index:1;pointer-events:none}
-@media(max-width:900px){.cc-hero-mark{width:340px;max-width:70vw;opacity:.12;right:-15%}}
+ width:620px;max-width:60vw;height:620px;z-index:1;pointer-events:none;
+ background:#4C1620;
+ -webkit-mask-image:url("https://www.courschambertin.fr/clone0726/wp-content/uploads/2026/08/cc-logo-master-transparent.png");
+ mask-image:url("https://www.courschambertin.fr/clone0726/wp-content/uploads/2026/08/cc-logo-master-transparent.png");
+ -webkit-mask-size:contain; mask-size:contain;
+ -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+ -webkit-mask-position:center; mask-position:center;}
+@media(max-width:900px){.cc-hero-mark{width:340px;height:340px;max-width:70vw;right:-15%}}
 </style>
-<img class="cc-hero-mark" src="https://www.courschambertin.fr/clone0726/wp-content/uploads/2026/08/cc-logo-master-transparent.png" alt="" aria-hidden="true">
+<div class="cc-hero-mark" aria-hidden="true"></div>
 <div class="cc-hero-inner">
 <div class="cc-hero-text">
 
