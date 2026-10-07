@@ -453,7 +453,6 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
   max-width: none; margin: 0 0 1.75rem; padding-left: 1.35rem;
 }
 .cc-page-split-side .cc-timeline > li::before { left: -1.75rem; }
-.cc-page-split-side .cc-timeline-date { font-size: .74rem; }
 @media (max-width: 900px) {
   .cc-page-split { grid-template-columns: 1fr; gap: 2.5rem; }
 }
