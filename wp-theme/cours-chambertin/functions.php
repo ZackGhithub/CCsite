@@ -12,6 +12,7 @@ define( 'CC_THEME_VERSION', '0.1.0' );
 require get_theme_file_path( 'inc/template-tags.php' );
 require get_theme_file_path( 'inc/seo.php' );
 require get_theme_file_path( 'inc/blocks.php' );
+require get_theme_file_path( 'inc/customizer.php' );
 
 /**
  * Réglages généraux du thème.

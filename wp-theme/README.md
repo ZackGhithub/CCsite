@@ -100,10 +100,9 @@ maintenir.
    (bento, panneaux doubles, comparatif d'images, plan du site, FAQ) —
    fonctionnels tels quels, mais à reconvertir en blocs natifs si l'équipe
    éditoriale doit les modifier souvent sans toucher au HTML.
-5. **Bandeau d'annonce** : réglable via `cc_announce_message` et
-   `cc_announce_target_path` (theme mods) — prévoir un panneau
-   Personnaliser dédié si l'équipe éditoriale doit le modifier sans
-   toucher au code.
+5. **Bandeau d'annonce** : réglable sans toucher au code, via Apparence >
+   Personnaliser > Bandeau d'annonce (`inc/customizer.php`) — message et
+   chemin de la page cible.
 
 ## Ne pas réintroduire
 
