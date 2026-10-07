@@ -434,7 +434,7 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
 /* ---------- Mise en page 3/4 + 1/4 (contenu principal + encart latéral) ---------- */
 
 .cc-page-split {
-  display: grid; grid-template-columns: 3fr 1fr; gap: 3rem;
+  display: grid; grid-template-columns: 3fr 2fr; gap: 3rem;
   max-width: var(--cc-max); margin: 0 auto; align-items: start;
 }
 .cc-page-split-main { display: grid; gap: 2.25rem; }
