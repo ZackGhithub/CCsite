@@ -447,7 +447,7 @@ p.cta a:hover { background: var(--cc-section-accent-dark); color: #fff; text-dec
   background: #fff; padding: 1.75rem; border-top: 3px solid var(--cc-or);
 }
 .cc-page-split-side h2 {
-  font-size: 1.4rem; margin-bottom: 1.3rem;
+  font-size: 1.2rem; margin-bottom: 1.3rem;
 }
 .cc-page-split-side .cc-timeline {
   max-width: none; margin: 0 0 1.75rem; padding-left: 1.35rem;
