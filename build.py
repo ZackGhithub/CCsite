@@ -252,6 +252,16 @@ OG_IMAGE_BY_SECTION = {
 }
 OG_IMAGE_DEFAULT = "assets/images/teacher-helping-young-students-1920x1024-1.jpg"
 
+# Dimensions réelles (largeur, hauteur) des images ci-dessus, pour les
+# meta og:image:width/height — annoncer les dimensions évite à Facebook/
+# LinkedIn de devoir télécharger l'image avant de savoir si elle est
+# utilisable, et accélère l'aperçu du lien.
+OG_IMAGE_SIZE = {
+    "assets/images/cc-ecole-facade.jpg": (346, 406),
+    "assets/images/cc-college-facade.jpg": (660, 230),
+    "assets/images/teacher-helping-young-students-1920x1024-1.jpg": (1920, 1024),
+}
+
 
 def json_ld_for(page):
     """Entité Schema.org adaptée à la page : School pour l'École/le Collège,
@@ -273,15 +283,38 @@ def json_ld_for(page):
     return json.dumps(entity, ensure_ascii=False, indent=2)
 
 
+def breadcrumb_json_ld(page):
+    """BreadcrumbList Schema.org reprenant la même chaîne que breadcrumb_html,
+    pour le fil d'Ariane visuel. None sur l'accueil (pas de fil d'Ariane)."""
+    if page["path"] == "":
+        return None
+    chain = page_ancestor_chain(page)
+    items = [{"@type": "ListItem", "position": 1, "name": "Accueil", "item": abs_url("")}]
+    for i, c in enumerate(chain, start=2):
+        items.append({"@type": "ListItem", "position": i, "name": c["title"], "item": abs_url(c["path"])})
+    data = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": items,
+    }
+    return json.dumps(data, ensure_ascii=False, indent=2)
+
+
 def seo_head_block(page, title, description):
     """Bloc <link>/<meta> Open Graph, Twitter Card et JSON-LD, à insérer tel
     quel juste avant </head>."""
     depth = depth_of(page["path"])
     canonical = abs_url(page["path"])
-    og_image = abs_url(OG_IMAGE_BY_SECTION.get(section_of(page["id"]), OG_IMAGE_DEFAULT))
+    og_image_path = OG_IMAGE_BY_SECTION.get(section_of(page["id"]), OG_IMAGE_DEFAULT)
+    og_image = abs_url(og_image_path)
+    og_image_w, og_image_h = OG_IMAGE_SIZE.get(og_image_path, (None, None))
     title_attr = html.escape(title, quote=True)
     description_attr = html.escape(description, quote=True)
     json_ld = json_ld_for(page)
+    breadcrumb_ld = breadcrumb_json_ld(page)
+    breadcrumb_script = (
+        f'\n  <script type="application/ld+json">\n{breadcrumb_ld}\n  </script>' if breadcrumb_ld else ""
+    )
     return (
         f'<link rel="canonical" href="{canonical}">\n'
         f'  <meta property="og:type" content="website">\n'
@@ -291,11 +324,14 @@ def seo_head_block(page, title, description):
         f'  <meta property="og:description" content="{description_attr}">\n'
         f'  <meta property="og:url" content="{canonical}">\n'
         f'  <meta property="og:image" content="{og_image}">\n'
+        f'  <meta property="og:image:width" content="{og_image_w}">\n'
+        f'  <meta property="og:image:height" content="{og_image_h}">\n'
         f'  <meta name="twitter:card" content="summary_large_image">\n'
         f'  <meta name="twitter:title" content="{title_attr}">\n'
         f'  <meta name="twitter:description" content="{description_attr}">\n'
         f'  <meta name="twitter:image" content="{og_image}">\n'
         f'  <script type="application/ld+json">\n{json_ld}\n  </script>'
+        f'{breadcrumb_script}'
     )
 
 
@@ -384,6 +420,27 @@ def nav_html(current_id, depth):
     return "\n".join(items)
 
 
+FAQ_ITEM_RE = re.compile(r'<summary>(.*?)</summary><p>(.*?)</p>', re.S)
+
+
+def _strip_tags(s):
+    return html.unescape(re.sub(r'<[^>]+>', '', s)).strip()
+
+
+def faq_json_ld(content_html):
+    """FAQPage Schema.org à partir des <details><summary>/<p> déjà publiés
+    sur la page FAQ — aucune question/réponse n'est reformulée ou inventée,
+    seul le texte déjà visible à l'écran est repris."""
+    items = [
+        {"@type": "Question", "name": _strip_tags(q), "acceptedAnswer": {"@type": "Answer", "text": _strip_tags(a)}}
+        for q, a in FAQ_ITEM_RE.findall(content_html)
+    ]
+    if not items:
+        return None
+    data = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": items}
+    return json.dumps(data, ensure_ascii=False, indent=2)
+
+
 def footer_nav_html(depth):
     mid = (len(FOOTER_NAV) + 1) // 2
     col1 = FOOTER_NAV[:mid]
@@ -437,6 +494,10 @@ def render_page(page):
         page_title = f'{SITE_NAME} | Enseignement privé École et Collège'
     page_description = page["excerpt"]
     seo_head = seo_head_block(page, page_title, page_description)
+    if page["id"] == "163":
+        faq_ld = faq_json_ld(content)
+        if faq_ld:
+            seo_head += f'\n  <script type="application/ld+json">\n{faq_ld}\n  </script>'
 
     html = TEMPLATE.format(
         lang="fr",
@@ -460,15 +521,21 @@ def render_page(page):
     return html
 
 
-def breadcrumb_html(page, depth):
-    if page["path"] == "":
-        return ""
+def page_ancestor_chain(page):
+    """Chaîne racine -> page, en remontant les 'parent' successifs."""
     chain = []
     cur = page
     while cur:
         chain.append(cur)
         cur = BY_ID.get(cur.get("parent")) if cur.get("parent") else None
     chain.reverse()
+    return chain
+
+
+def breadcrumb_html(page, depth):
+    if page["path"] == "":
+        return ""
+    chain = page_ancestor_chain(page)
     parts = [f'<a href="{to_relative("", depth)}">Accueil</a>']
     for i, c in enumerate(chain):
         if i == len(chain) - 1:
@@ -527,7 +594,7 @@ TEMPLATE = """<!DOCTYPE html>
   <div class="cc-pied-inner">
     <div class="cc-pied-grille">
       <div class="cc-pied-marque">
-        <img src="{logo_footer_src}" alt="Cours Chambertin" loading="lazy">
+        <img src="{logo_footer_src}" alt="Cours Chambertin" width="628" height="640" loading="lazy">
         <p>Ensemble scolaire fondé en 1982 à Asnières-sur-Seine, composé de l’École Chambertin et du Collège Chambertin.</p>
         <a class="cc-pied-itineraire" href="https://www.google.com/maps/search/?api=1&query=9+avenue+de+la+Marne+92600+Asni%C3%A8res-sur-Seine" target="_blank" rel="noopener noreferrer">Voir l’itinéraire &rarr;</a>
       </div>
