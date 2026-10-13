@@ -86,7 +86,7 @@ return array(
 			'excerpt' => 'Contactez l’École Chambertin ou le Collège Chambertin à Asnières-sur-Seine selon la nature de votre demande.' ),
 		array( 'id' => '165', 'file' => '165_mentions-legales.html', 'path' => 'mentions-legales', 'parent' => null,
 			'title' => 'Mentions légales',
-			'excerpt' => 'Mentions légales du site du Cours Chambertin.' ),
+			'excerpt' => 'Les mentions légales du site du Cours Chambertin — éditeur, directeur de la publication, hébergeur — seront publiées avant l’ouverture du site au public.' ),
 		array( 'id' => '166', 'file' => '166_politique-confidentialite.html', 'path' => 'politique-confidentialite', 'parent' => null,
 			'title' => 'Politique de confidentialité',
 			'excerpt' => 'Politique de confidentialité et gestion des données personnelles du site du Cours Chambertin.' ),
