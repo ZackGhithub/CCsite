@@ -25,6 +25,14 @@ CONTENT_DIR = os.path.join(ROOT, "content")
 SITE_NAME = "Cours Chambertin"
 SITE_TAGLINE = "École et Collège privés · Asnières-sur-Seine"
 
+# Pages dont le titre ("title") est identique à SITE_NAME : sans ce correctif,
+# le <title> et le nom Schema.org se dupliqueraient ("Cours Chambertin | Cours
+# Chambertin"). On y substitue ce complément pour le <title>/JSON-LD, sans
+# toucher au libellé de nav/fil d'Ariane (qui reste "Cours Chambertin").
+SEO_TITLE_SUFFIX = {
+    "145": "du CP à la 3ème",
+}
+
 # Domaine de production visé (à ajuster ici le jour du déploiement définitif :
 # toutes les URLs absolues — canonical, Open Graph, Schema.org — en dépendent).
 SITE_URL = "https://www.courschambertin.fr"
@@ -43,16 +51,16 @@ PAGES = [
      "title": "Cours Chambertin",
      "excerpt": "Fondé en 1982, le Cours Chambertin prépare la réouverture de son École élémentaire en septembre 2027 aux côtés du Collège Chambertin, de la 6e à la 3e."},
 
-    {"id": "145", "file": "145_le-cours-chambertin.html", "path": "le-cours-chambertin/", "parent": None,
+    {"id": "145", "file": "145_le-cours-chambertin.html", "path": "cours-chambertin/", "parent": None,
      "title": "Cours Chambertin",
      "excerpt": "Découvrez le Cours Chambertin, institution privée laïque fondée en 1982 à Asnières-sur-Seine, composée de l’École Chambertin et du Collège Chambertin."},
-    {"id": "146", "file": "146_notre-histoire.html", "path": "le-cours-chambertin/notre-histoire/", "parent": "145",
+    {"id": "146", "file": "146_notre-histoire.html", "path": "cours-chambertin/notre-histoire/", "parent": "145",
      "title": "Notre histoire",
      "excerpt": "De la fondation du Cours Chambertin en 1982 à la réouverture de l’École en septembre 2027 : découvrez les étapes d’une institution scolaire asniéroise."},
-    {"id": "147", "file": "147_notre-projet-educatif.html", "path": "le-cours-chambertin/notre-projet-educatif/", "parent": "145",
+    {"id": "147", "file": "147_notre-projet-educatif.html", "path": "cours-chambertin/notre-projet-educatif/", "parent": "145",
      "title": "Notre projet éducatif",
      "excerpt": "Programmes nationaux, responsabilité de l’établissement, connaissances solides, laïcité, langues et cultures : les engagements éducatifs du Cours Chambertin."},
-    {"id": "148", "file": "148_langues-et-cultures.html", "path": "le-cours-chambertin/langues-et-cultures/", "parent": "145",
+    {"id": "148", "file": "148_langues-et-cultures.html", "path": "cours-chambertin/langues-et-cultures/", "parent": "145",
      "title": "Langues et cultures",
      "excerpt": "Le Cours Chambertin place les langues et les cultures au cœur de l’ouverture au monde, de l’École élémentaire au Collège."},
 
@@ -257,7 +265,10 @@ def json_ld_for(page):
         section_of(page["id"]), JSONLD_CHAMBERTIN
     )
     entity = dict(base)
-    entity["name"] = f'{SITE_NAME} - Accueil' if page["path"] == "" else f'{SITE_NAME} - {page["title"]}'
+    if page["path"] == "":
+        entity["name"] = f'{SITE_NAME} - Accueil'
+    else:
+        entity["name"] = f'{SITE_NAME} - {SEO_TITLE_SUFFIX.get(page["id"], page["title"])}'
     entity["description"] = page["excerpt"]
     return json.dumps(entity, ensure_ascii=False, indent=2)
 
@@ -418,10 +429,12 @@ def render_page(page):
 
     breadcrumb = breadcrumb_html(page, depth)
 
-    page_title = (
-        f'{page["title"]} | {SITE_NAME}' if page["path"]
-        else f'{SITE_NAME} | Enseignement privé École et Collège'
-    )
+    if page["id"] in SEO_TITLE_SUFFIX:
+        page_title = f'{SITE_NAME} | {SEO_TITLE_SUFFIX[page["id"]]}'
+    elif page["path"]:
+        page_title = f'{page["title"]} | {SITE_NAME}'
+    else:
+        page_title = f'{SITE_NAME} | Enseignement privé École et Collège'
     page_description = page["excerpt"]
     seo_head = seo_head_block(page, page_title, page_description)
 
