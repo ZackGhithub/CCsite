@@ -22,7 +22,7 @@ return array(
 			'excerpt' => 'Fondé en 1982, le Cours Chambertin prépare la réouverture de son École élémentaire en septembre 2027 aux côtés du Collège Chambertin, de la 6e à la 3e.' ),
 
 		array( 'id' => '145', 'file' => '145_le-cours-chambertin.html', 'path' => 'le-cours-chambertin', 'parent' => null,
-			'title' => 'Le Cours Chambertin',
+			'title' => 'Cours Chambertin',
 			'excerpt' => 'Découvrez le Cours Chambertin, institution privée laïque fondée en 1982 à Asnières-sur-Seine, composée de l’École Chambertin et du Collège Chambertin.' ),
 		array( 'id' => '146', 'file' => '146_notre-histoire.html', 'path' => 'le-cours-chambertin/notre-histoire', 'parent' => '145',
 			'title' => 'Notre histoire',
@@ -114,7 +114,7 @@ return array(
 
 	// Menu principal (emplacement de thème "primary").
 	'nav_menu' => array(
-		array( 'id' => '145', 'label' => 'Le Cours Chambertin', 'children' => array( '146', '147', '148' ) ),
+		array( 'id' => '145', 'label' => 'Cours Chambertin', 'children' => array( '146', '147', '148' ) ),
 		array( 'id' => '149', 'label' => 'L’École', 'children' => array( '150', '151', '152', '153', '154' ) ),
 		array( 'id' => '155', 'label' => 'Le Collège', 'children' => array( '156', '157', '158', '159' ) ),
 		array( 'id' => '160', 'label' => 'Admissions', 'children' => array( '154', '159' ) ),
@@ -125,7 +125,7 @@ return array(
 
 	// Menu de pied de page (emplacement de thème "footer").
 	'footer_menu' => array(
-		array( 'id' => '145', 'label' => 'Le Cours Chambertin' ),
+		array( 'id' => '145', 'label' => 'Cours Chambertin' ),
 		array( 'id' => '149', 'label' => 'L’École Chambertin' ),
 		array( 'id' => '155', 'label' => 'Le Collège Chambertin' ),
 		array( 'id' => '160', 'label' => 'Admissions' ),

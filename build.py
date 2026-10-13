@@ -44,7 +44,7 @@ PAGES = [
      "excerpt": "Fondé en 1982, le Cours Chambertin prépare la réouverture de son École élémentaire en septembre 2027 aux côtés du Collège Chambertin, de la 6e à la 3e."},
 
     {"id": "145", "file": "145_le-cours-chambertin.html", "path": "le-cours-chambertin/", "parent": None,
-     "title": "Le Cours Chambertin",
+     "title": "Cours Chambertin",
      "excerpt": "Découvrez le Cours Chambertin, institution privée laïque fondée en 1982 à Asnières-sur-Seine, composée de l’École Chambertin et du Collège Chambertin."},
     {"id": "146", "file": "146_notre-histoire.html", "path": "le-cours-chambertin/notre-histoire/", "parent": "145",
      "title": "Notre histoire",
@@ -152,7 +152,7 @@ KNOWN_PATHS = {p["path"] for p in PAGES}
 
 # Menu principal (correspond au menu WordPress "Menu Haut" d'origine)
 NAV_MENU = [
-    {"id": "145", "label": "Le Cours Chambertin", "children": ["146", "147", "148"]},
+    {"id": "145", "label": "Cours Chambertin", "children": ["146", "147", "148"]},
     {"id": "149", "label": "L’École", "children": ["150", "151", "152", "153", "154"]},
     {"id": "155", "label": "Le Collège", "children": ["156", "157", "158", "159"]},
     {"id": "160", "label": "Admissions", "children": ["154", "159"]},
@@ -162,7 +162,7 @@ NAV_MENU = [
 ]
 
 FOOTER_NAV = [
-    ("145", "Le Cours Chambertin"), ("149", "L’École Chambertin"), ("155", "Le Collège Chambertin"),
+    ("145", "Cours Chambertin"), ("149", "L’École Chambertin"), ("155", "Le Collège Chambertin"),
     ("160", "Admissions"), ("161", "Vie & actualités"), ("162", "Informations pratiques"),
     ("163", "FAQ"), ("164", "Contact"), ("165", "Mentions légales"),
     ("166", "Politique de confidentialité"), ("298", "Plan du site"),
