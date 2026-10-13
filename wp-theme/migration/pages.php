@@ -117,9 +117,9 @@ return array(
 		array( 'id' => '145', 'label' => 'Le Cours Chambertin', 'children' => array( '146', '147', '148' ) ),
 		array( 'id' => '149', 'label' => 'L’École', 'children' => array( '150', '151', '152', '153', '154' ) ),
 		array( 'id' => '155', 'label' => 'Le Collège', 'children' => array( '156', '157', '158', '159' ) ),
-		array( 'id' => '160', 'label' => 'Admissions', 'children' => array() ),
+		array( 'id' => '160', 'label' => 'Admissions', 'children' => array( '154', '159' ) ),
 		array( 'id' => '161', 'label' => 'Vie & actualités', 'children' => array() ),
-		array( 'id' => '162', 'label' => 'Infos pratiques', 'children' => array() ),
+		array( 'id' => '162', 'label' => 'Infos pratiques', 'children' => array( '163' ) ),
 		array( 'id' => '164', 'label' => 'Contact', 'children' => array() ),
 	),
 
