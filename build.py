@@ -155,9 +155,9 @@ NAV_MENU = [
     {"id": "145", "label": "Le Cours Chambertin", "children": ["146", "147", "148"]},
     {"id": "149", "label": "L’École", "children": ["150", "151", "152", "153", "154"]},
     {"id": "155", "label": "Le Collège", "children": ["156", "157", "158", "159"]},
-    {"id": "160", "label": "Admissions", "children": []},
+    {"id": "160", "label": "Admissions", "children": ["154", "159"]},
     {"id": "161", "label": "Vie & actualités", "children": []},
-    {"id": "162", "label": "Infos pratiques", "children": []},
+    {"id": "162", "label": "Infos pratiques", "children": ["163"]},
     {"id": "164", "label": "Contact", "children": []},
 ]
 
