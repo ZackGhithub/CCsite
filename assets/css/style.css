@@ -127,7 +127,19 @@ ul, ol { margin: 0 0 1.1rem; padding-left: 1.3rem; }
   gap: 1.5rem;
 }
 
-.cc-logo img { height: 56px; width: auto; }
+/* .cc-logo-mark reproduit le cadre du logo complet (anneaux + point),
+   mais n'affiche que les anneaux (image cc-logo-sans-point-*) : le point
+   est un cercle CSS positionné par-dessus, coloré via --cc-section-accent
+   (bleu École / bordeaux Collège, voir body[data-section] plus haut). Les
+   pourcentages ci-dessous viennent de la position du point dans le logo
+   d'origine (628x640px) : left 447px, top 228px, diamètre 181px ; l'image
+   sans point ne couvre que les 590 premiers px de large, d'où ses 93.95%. */
+.cc-logo-mark { position: relative; display: block; height: 56px; aspect-ratio: 628 / 640; }
+.cc-logo-mark img { position: absolute; top: 0; left: 0; width: 93.95%; height: 100%; }
+.cc-logo-dot {
+  position: absolute; left: 71.18%; top: 35.63%; width: 28.82%; height: 28.28%;
+  border-radius: 50%; background: var(--cc-section-accent);
+}
 
 .site-nav ul {
   list-style: none; margin: 0; padding: 0;

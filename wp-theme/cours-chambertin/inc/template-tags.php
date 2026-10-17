@@ -66,7 +66,33 @@ function cc_breadcrumb() {
  * par page d'accueil de section, ou brancher un champ dédié (ACF ou
  * theme mod) filtrant sur cc_current_section().
  */
+/**
+ * Logo d'en-tête : un seul fichier média ("cc-logo-sans-point-transparent",
+ * déjà importé dans la médiathèque par la migration) sert sur toutes les
+ * pages — pas d'image différente par section. Le point d'accent est un
+ * cercle CSS (.cc-logo-dot, voir style.css) coloré via --cc-section-accent,
+ * qui bascule déjà bleu/bordeaux selon la section. Repli sur le logo custom
+ * WordPress standard, puis sur le nom du site en texte, si ce média n'a pas
+ * été trouvé (site pas encore migré, ou fichier renommé/supprimé).
+ */
 function cc_site_logo() {
+	$query = new WP_Query(
+		array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'title'          => 'cc-logo-sans-point-transparent',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		)
+	);
+	if ( $query->posts ) {
+		printf(
+			'<a class="cc-logo" href="%s"><span class="cc-logo-mark">%s<span class="cc-logo-dot" aria-hidden="true"></span></span></a>',
+			esc_url( home_url( '/' ) ),
+			wp_get_attachment_image( $query->posts[0], 'full', false, array( 'alt' => get_bloginfo( 'name' ) ) )
+		);
+		return;
+	}
 	if ( has_custom_logo() ) {
 		the_custom_logo();
 		return;

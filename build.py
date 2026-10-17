@@ -472,12 +472,13 @@ def render_page(page):
             f'</div></div>'
         )
 
-    logo_file = {
-        "ecole": "cc-logo-ecole-transparent.png",
-        "college": "cc-logo-college-transparent.png",
-    }.get(section_of(page["id"]), "cc-logo-master-transparent.png")
-    logo_src = to_relative(f"assets/images/{logo_file}", depth)
-    favicon_src = to_relative("assets/images/cc-logo-sans-point-transparent.png", depth)
+    # Un seul fichier logo (sans le point d'accent) sert d'en-tête sur toutes
+    # les pages ; le point est dessiné en CSS (.cc-logo-dot, background:
+    # var(--cc-section-accent)), qui bascule déjà bleu/bordeaux selon la
+    # section (voir body[data-section] dans style.css). Plus besoin d'un
+    # fichier logo par section.
+    logo_src = to_relative("assets/images/cc-logo-sans-point-transparent.png", depth)
+    favicon_src = logo_src
     logo_footer_src = to_relative("assets/images/cc-logo-master-blanc-plein.png", depth)
     css_href = to_relative("assets/css/style.css", depth)
     js_src = to_relative("assets/js/main.js", depth)
@@ -571,7 +572,10 @@ TEMPLATE = """<!DOCTYPE html>
 <header id="site-header">
   <div class="cc-header-inner">
     <a class="cc-logo" href="{home_href}">
-      <img src="{logo_src}" alt="Cours Chambertin" width="98" height="100">
+      <span class="cc-logo-mark">
+        <img src="{logo_src}" alt="Cours Chambertin" width="590" height="640">
+        <span class="cc-logo-dot" aria-hidden="true"></span>
+      </span>
     </a>
     <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="site-nav">
       <span></span><span></span><span></span>
